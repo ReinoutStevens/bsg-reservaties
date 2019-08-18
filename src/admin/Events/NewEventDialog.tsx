@@ -147,7 +147,6 @@ class NewEventDialog extends React.Component<NewEventDialogProps_, NewEventDialo
 
   private renderStartPicker() {
     const { start, allDay } = this.state;
-    (console).log('start', start);
     if (allDay) {
       return (
         <DatePicker

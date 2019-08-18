@@ -33,7 +33,6 @@ class Events extends React.Component<{}, EventsState> {
 
   render() {
     const { dialogOpen, start, end, allDay } = this.state;
-    (console).log('from', start);
     return (
       <div className='admin-calendar'>
         <FullCalendar
