@@ -3,6 +3,7 @@ import { Theme, createStyles } from '@material-ui/core/styles';
 import { WithStyles, withStyles } from '@material-ui/styles';
 import { Fab, Tooltip } from '@material-ui/core';
 import AddIcon from '@material-ui/icons/Add';
+import NewRentableDialog from './NewRentableDialog';
 
 
 const styles = (theme: Theme) => createStyles({
@@ -45,7 +46,7 @@ class NewRentableFab extends React.Component<NewRentableFabProps_, NewRentableFa
     const { classes } = this.props;
     return (
       <Tooltip title="Add">
-        <Fab aria-label="Add" className={classes.fab} color="primary">
+        <Fab aria-label="Add" className={classes.fab} color="primary" onClick={this.openDialog}>
           <AddIcon />
         </Fab>
       </Tooltip>
@@ -53,7 +54,16 @@ class NewRentableFab extends React.Component<NewRentableFabProps_, NewRentableFa
   }
 
   private renderDialog() {
-    return null;
+    const { open } = this.state;
+    return <NewRentableDialog open={open} onClose={this.closeDialog} />;
+  }
+
+  private openDialog = () => {
+    this.setState({ open: true });
+  }
+
+  private closeDialog = () => {
+    this.setState({ open: false });
   }
 }
 

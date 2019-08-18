@@ -1,6 +1,8 @@
 import React from 'react';
 import { List, ListItem, ListItemIcon, ListItemText } from '@material-ui/core';
 import MeetinRoomIcon from '@material-ui/icons/MeetingRoom';
+import EventIcon from '@material-ui/icons/Event';
+
 import { Link } from 'react-router-dom';
 
 export interface AdminMenuProps {
@@ -12,7 +14,9 @@ class AdminMenu extends React.Component<AdminMenuProps> {
   render() {
     return (
       <List>
+        {this.renderItem('Events', '/events', <EventIcon />)}
         {this.renderItem('Rentables', '/rentables', <MeetinRoomIcon />)}
+
       </List>
     );
   }
@@ -21,7 +25,7 @@ class AdminMenu extends React.Component<AdminMenuProps> {
     const { onClick } = this.props;
     return (
       <ListItem button component={Link} to={to} onClick={onClick}>
-        <ListItemIcon><MeetinRoomIcon /></ListItemIcon>
+        <ListItemIcon>{icon}</ListItemIcon>
         <ListItemText primary={name} />
       </ListItem>
     );

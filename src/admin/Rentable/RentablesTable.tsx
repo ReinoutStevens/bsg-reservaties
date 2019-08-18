@@ -42,7 +42,7 @@ class RentablesTable extends React.Component<RentablesTableProps_> {
                 <TableCell component="th" scope="row">
                   {rentable.name}
                 </TableCell>
-                <TableCell align="right">{rentable.color}</TableCell>
+                <TableCell size="small"><div style={{ backgroundColor: rentable.color, color: rentable.color }}>{rentable.color}</div></TableCell>
                 <TableCell align="right">{this.renderAction(rentable)}</TableCell>
               </TableRow>
             ))}

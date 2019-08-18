@@ -1,21 +1,23 @@
 import { DateTime } from 'luxon';
 import firebase from 'firebase/app';
 import 'firebase/firestore';
-
-
-interface CalendarEvent {
-  id: string;
-  from: DateTime;
-  to: DateTime;
-  name: string;
-  approved: boolean;
-  rentableId?: string;
-}
+import 'firebase/auth';
+import { CalendarEvent, CreateCalendarEventInput } from './Events';
 
 interface Rentable {
   id: string;
   name: string;
   color: string;
+}
+
+interface NewRentableInput {
+  name: string;
+  color: string;
+}
+
+interface NewUserInput {
+  email: string;
+  password: string;
 }
 
 class BSGServices {
@@ -30,33 +32,82 @@ class BSGServices {
 
 
   private db: firebase.firestore.Firestore;
+  private auth: firebase.auth.Auth;
 
 
   private constructor() {
     this.db = firebase.firestore();
+    this.auth = firebase.auth();
   }
 
-  async getApprovedEvents(from: DateTime, to: DateTime): Promise<CalendarEvent[]> {
+  async getApprovedEvents(start: DateTime, end: DateTime): Promise<CalendarEvent[]> {
     const snapshot = await this.db.collection('events')
-      .where('from', '>=', from.toJSDate())
-      .where('to', '<', to.toJSDate())
+      .where('start', '>=', start.toJSDate())
       .where('approved', '==', true)
-      .orderBy('from')
+      .orderBy('start')
+      .orderBy('end', 'asc')
       .get();
     let events: CalendarEvent[] = [];
-    snapshot.forEach((res) => {
+    for (const doc in snapshot.docs) {
+      const res = snapshot.docs[doc];
       const data = res.data();
+      if (end < data.end) {
+        break;
+      }
       const event: CalendarEvent = {
         id: res.id,
-        from: DateTime.fromISO(data.from),
-        to: DateTime.fromISO(data.to),
-        name: data.name,
+        start: DateTime.fromJSDate(data.start.toDate()),
+        end: DateTime.fromJSDate(data.end.toDate()),
+        title: data.title,
+        description: data.description,
         approved: data.approved,
         rentableId: data.rentableId,
       };
       events.push(event);
-    });
+    }
     return events;
+  }
+
+  async getAllEvents(start: DateTime, end: DateTime): Promise<CalendarEvent[]> {
+    const snapshot = await this.db.collection('events')
+      .where('start', '>=', start.toJSDate())
+      .orderBy('start')
+      .orderBy('end', 'asc')
+      .get();
+    let events: CalendarEvent[] = [];
+    for (const doc in snapshot.docs) {
+      const res = snapshot.docs[doc];
+      const data = res.data();
+      if (end < data.end) {
+        break;
+      }
+      const event: CalendarEvent = {
+        id: res.id,
+        start: DateTime.fromJSDate(data.start.toDate()),
+        end: DateTime.fromJSDate(data.end.toDate()),
+        title: data.title,
+        description: data.description,
+        approved: data.approved,
+        rentableId: data.rentableId,
+      };
+      events.push(event);
+    }
+    return events;
+  }
+
+  async createEvent(input: CreateCalendarEventInput): Promise<CalendarEvent> {
+    const ev = {
+      ...input,
+      start: input.start.toJSDate(),
+      end: input.end.toJSDate(),
+      approved: false,
+    }
+    const ref = await this.db.collection('events').add(ev);
+    return {
+      ...input,
+      approved: false,
+      id: ref.id,
+    };
   }
 
   async getRentables(): Promise<Rentable[]> {
@@ -74,6 +125,24 @@ class BSGServices {
       rentables.push(rentable);
     });
     return rentables;
+  }
+
+  async createRentable(rentable: NewRentableInput): Promise<Rentable> {
+    const ref = await this.db.collection('rentables').add({
+      ...rentable,
+      archived: false,
+    });
+    return {
+      ...rentable,
+      id: ref.id,
+    }
+  }
+
+
+
+  async createUser(user: NewUserInput) {
+    await this.auth.createUserWithEmailAndPassword(user.email, user.password);
+    return user;
   }
 }
 
