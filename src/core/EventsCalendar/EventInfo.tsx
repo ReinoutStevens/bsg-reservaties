@@ -40,7 +40,7 @@ class EventInfo extends React.Component<EventInfoProps_> {
   }
 
   private renderEvent() {
-    const { event, classes } = this.props;
+    const { event } = this.props;
     const dateFormat = {
       weekday: undefined,
       month: 'short',
