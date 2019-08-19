@@ -11,9 +11,6 @@ import { SnackbarProvider } from 'notistack';
 import { MuiPickersUtilsProvider } from '@material-ui/pickers';
 import LuxonUtils from '@date-io/luxon';
 
-
-import './App.scss';
-
 const theme = createMuiTheme();
 
 

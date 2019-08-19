@@ -62,6 +62,7 @@ class BSGServices {
         description: data.description,
         approved: data.approved,
         rentableId: data.rentableId,
+        url: data.url,
       };
       events.push(event);
     }
@@ -89,6 +90,7 @@ class BSGServices {
         description: data.description,
         approved: data.approved,
         rentableId: data.rentableId,
+        url: data.url,
       };
       events.push(event);
     }
@@ -137,8 +139,6 @@ class BSGServices {
       id: ref.id,
     }
   }
-
-
 
   async createUser(user: NewUserInput) {
     await this.auth.createUserWithEmailAndPassword(user.email, user.password);

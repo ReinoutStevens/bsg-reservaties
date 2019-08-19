@@ -9,11 +9,14 @@ import { EventSourceFunc } from '@fullcalendar/core/event-sources/func-event-sou
 import { OptionsInput, EventApi } from '@fullcalendar/core';
 import { CalendarEvent } from '../../services/Events';
 
+import './EventsCalendar.scss';
+
 export interface EventsCalenderProps {
   calendarProps?: Partial<OptionsInput>;
   events: (from: DateTime, to: DateTime) => Promise<CalendarEvent[]>
   onEventClick?: (event: CalendarEvent, anchor: HTMLElement) => void;
 }
+
 class EventsCalendar extends React.Component<EventsCalenderProps> {
 
   calendarComponentRef = React.createRef<FullCalendar>()
@@ -72,22 +75,24 @@ class EventsCalendar extends React.Component<EventsCalenderProps> {
   private onEventClick = (arg: {
     event: EventApi,
     el: HTMLElement,
+    jsEvent: MouseEvent,
   }) => {
     const { onEventClick } = this.props;
     if (!onEventClick) {
       return;
     }
-    const { event, el } = arg;
+    const { event, el, jsEvent } = arg;
     const ev: CalendarEvent = {
       start: DateTime.fromJSDate(event.start || new Date()),
       end: DateTime.fromJSDate(event.end || new Date()),
       title: event.title,
       description: event.extendedProps.description,
-      url: event.extendedProps.url,
+      url: event.url,
       id: event.id,
       rentableId: event.extendedProps.rentableId,
       approved: event.extendedProps.approved,
     }
+    jsEvent.preventDefault();
     onEventClick(ev, el);
   }
 }
