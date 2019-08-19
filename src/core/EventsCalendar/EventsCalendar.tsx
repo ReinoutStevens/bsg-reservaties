@@ -8,36 +8,20 @@ import { DateTime } from 'luxon';
 import { EventSourceFunc } from '@fullcalendar/core/event-sources/func-event-source';
 import { OptionsInput, EventApi } from '@fullcalendar/core';
 import { CalendarEvent } from '../../services/Events';
-import EventInfo from './EventInfo';
 
 export interface EventsCalenderProps {
   calendarProps?: Partial<OptionsInput>;
   events: (from: DateTime, to: DateTime) => Promise<CalendarEvent[]>
+  onEventClick?: (event: CalendarEvent, anchor: HTMLElement) => void;
 }
-
-interface EventsCalenderState {
-  activeEvent: CalendarEvent | null;
-  eventAnchor: HTMLElement | null;
-}
-
-class EventsCalendar extends React.Component<EventsCalenderProps, EventsCalenderState> {
+class EventsCalendar extends React.Component<EventsCalenderProps> {
 
   calendarComponentRef = React.createRef<FullCalendar>()
-
-  constructor(props: EventsCalenderProps) {
-    super(props)
-    this.state = {
-      activeEvent: null,
-      eventAnchor: null,
-    }
-  }
-
 
   render() {
     return (
       <>
         {this.renderCalendar()}
-        {this.renderEventInfo()}
       </>
     )
   }
@@ -61,28 +45,6 @@ class EventsCalendar extends React.Component<EventsCalenderProps, EventsCalender
         />
       </div>
     );
-  }
-
-  private renderEventInfo() {
-    const { activeEvent, eventAnchor } = this.state;
-    if (activeEvent && eventAnchor) {
-      return (
-        <EventInfo
-          event={activeEvent}
-          onClose={this.onEventInfoClose}
-          anchorEl={eventAnchor}
-          open
-        />
-      );
-    }
-    return null;
-  }
-
-  private onEventInfoClose = () => {
-    this.setState({
-      activeEvent: null,
-      eventAnchor: null,
-    });
   }
 
   private getEvents: EventSourceFunc = (arg: {
@@ -111,6 +73,10 @@ class EventsCalendar extends React.Component<EventsCalenderProps, EventsCalender
     event: EventApi,
     el: HTMLElement,
   }) => {
+    const { onEventClick } = this.props;
+    if (!onEventClick) {
+      return;
+    }
     const { event, el } = arg;
     const ev: CalendarEvent = {
       start: DateTime.fromJSDate(event.start || new Date()),
@@ -122,10 +88,7 @@ class EventsCalendar extends React.Component<EventsCalenderProps, EventsCalender
       rentableId: event.extendedProps.rentableId,
       approved: event.extendedProps.approved,
     }
-    this.setState({
-      activeEvent: ev,
-      eventAnchor: el,
-    })
+    onEventClick(ev, el);
   }
 }
 
