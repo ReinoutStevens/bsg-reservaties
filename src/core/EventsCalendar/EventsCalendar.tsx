@@ -11,10 +11,12 @@ import { CalendarEvent } from '../../services/Events';
 
 import './EventsCalendar.scss';
 
+export type ExtendedCalendarEvent = CalendarEvent & { baseEvent: EventApi };
+
 export interface EventsCalenderProps {
   calendarProps?: Partial<OptionsInput>;
   events: (from: DateTime, to: DateTime) => Promise<CalendarEvent[]>
-  onEventClick?: (event: CalendarEvent, anchor: HTMLElement) => void;
+  onEventClick?: (event: ExtendedCalendarEvent, anchor: HTMLElement) => void;
 }
 
 class EventsCalendar extends React.Component<EventsCalenderProps> {
@@ -84,11 +86,12 @@ class EventsCalendar extends React.Component<EventsCalenderProps> {
     jsEvent: MouseEvent,
   }) => {
     const { onEventClick } = this.props;
+    arg.jsEvent.preventDefault();
     if (!onEventClick) {
       return;
     }
-    const { event, el, jsEvent } = arg;
-    const ev: CalendarEvent = {
+    const { event, el } = arg;
+    const ev: ExtendedCalendarEvent = {
       start: DateTime.fromJSDate(event.start || new Date()),
       end: DateTime.fromJSDate(event.end || new Date()),
       title: event.title,
@@ -97,8 +100,8 @@ class EventsCalendar extends React.Component<EventsCalenderProps> {
       id: event.id,
       rentable: event.extendedProps.rentable,
       approved: event.extendedProps.approved,
+      baseEvent: event,
     }
-    jsEvent.preventDefault();
     onEventClick(ev, el);
   }
 }

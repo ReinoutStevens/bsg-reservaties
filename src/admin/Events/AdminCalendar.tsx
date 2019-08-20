@@ -2,13 +2,16 @@ import React from 'react';
 import BSGServices from '../../services/BSGServices';
 import { DateTime } from 'luxon';
 import NewEventDialog from './NewEventDialog';
-import EventsCalendar from '../../core/EventsCalendar/EventsCalendar';
+import EventsCalendar, { ExtendedCalendarEvent } from '../../core/EventsCalendar/EventsCalendar';
+import AdminEventInfo from './AdminEventInfo';
 
 interface EventsState {
   start: DateTime | null;
   end: DateTime | null;
   allDay: boolean;
   dialogOpen: boolean;
+  anchorEl: HTMLElement | null;
+  activeEvent: ExtendedCalendarEvent | null;
 }
 
 class AdminCalendar extends React.Component<{}, EventsState> {
@@ -20,6 +23,8 @@ class AdminCalendar extends React.Component<{}, EventsState> {
       end: null,
       dialogOpen: false,
       allDay: false,
+      activeEvent: null,
+      anchorEl: null,
     }
   }
 
@@ -41,7 +46,9 @@ class AdminCalendar extends React.Component<{}, EventsState> {
               select: this.handleDateSelect,
             }
           }
+          onEventClick={this.onEventClick}
         />
+        {this.renderEventInfo()}
         <NewEventDialog
           open={dialogOpen}
           start={start}
@@ -53,8 +60,22 @@ class AdminCalendar extends React.Component<{}, EventsState> {
     )
   }
 
+  private renderEventInfo() {
+    const { activeEvent, anchorEl } = this.state;
+    if (activeEvent && anchorEl) {
+      return (
+        <AdminEventInfo
+          event={activeEvent}
+          onClose={this.onEventInfoClose}
+          anchorEl={anchorEl}
+          open
+        />
+      );
+    }
+    return null;
+  }
 
-  handleDateClick = (arg: {
+  private handleDateClick = (arg: {
     date: Date;
     allDay: boolean;
   }) => {
@@ -66,7 +87,7 @@ class AdminCalendar extends React.Component<{}, EventsState> {
     });
   }
 
-  handleDateSelect = (arg: {
+  private handleDateSelect = (arg: {
     start: Date;
     end: Date;
     allDay: boolean;
@@ -84,6 +105,20 @@ class AdminCalendar extends React.Component<{}, EventsState> {
     this.setState({
       dialogOpen: false,
     })
+  }
+
+  private onEventClick = (event: ExtendedCalendarEvent, el: HTMLElement) => {
+    this.setState({
+      activeEvent: event,
+      anchorEl: el,
+    });
+  }
+
+  private onEventInfoClose = () => {
+    this.setState({
+      anchorEl: null,
+      activeEvent: null,
+    });
   }
 
   private getEvents = (start: DateTime, end: DateTime) => {

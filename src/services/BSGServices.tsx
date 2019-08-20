@@ -100,6 +100,10 @@ class BSGServices {
     };
   }
 
+  deleteEvent(eventId: string): Promise<void> {
+    return this.db.collection('events').doc(eventId).delete();
+  }
+
   async getRentables(): Promise<Rentable[]> {
     const snapshot = await this.db.collection('rentables')
       .where('archived', '==', false)

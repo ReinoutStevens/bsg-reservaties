@@ -1,14 +1,14 @@
 import React from 'react';
-import { 
-  Dialog, 
-  TextField, 
-  DialogTitle, 
-  DialogContent, 
-  DialogContentText, 
-  DialogActions, 
-  Button, 
-  Checkbox, 
-  FormControlLabel 
+import {
+  Dialog,
+  TextField,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Button,
+  Checkbox,
+  FormControlLabel
 } from '@material-ui/core';
 import BSGServices from '../../services/BSGServices';
 import { withSnackbar, WithSnackbarProps } from 'notistack';
@@ -102,10 +102,10 @@ class NewEventDialog extends React.Component<NewEventDialogProps_, NewEventDialo
       description: description.length > 0 ? description : null,
     }
     BSGServices.getInstance().createEvent(evInput).then((ev) => {
-      enqueueSnackbar(`Created ${ev.title}`);
+      enqueueSnackbar(`Created ${ev.title}`, { variant: 'success' });
     }).catch((e) => {
       (console).error(e);
-      enqueueSnackbar(`Failed saving ${title}`);
+      enqueueSnackbar(`Failed saving ${title}`, { variant: 'error' });
     })
     onClose();
   }
