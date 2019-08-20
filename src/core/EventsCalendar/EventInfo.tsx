@@ -1,6 +1,6 @@
 import React from 'react';
 import { CalendarEvent } from '../../services/Events';
-import { Popover, Card, CardContent, Typography, Theme, createStyles, CardHeader, CardActions, IconButton, Link } from '@material-ui/core';
+import { Popover, Card, CardContent, Typography, Theme, createStyles, CardHeader, CardActions, IconButton, Link, Grid } from '@material-ui/core';
 import LocationOnIcon from '@material-ui/icons/LocationOn';
 import OpenInBrowserIcon from '@material-ui/icons/OpenInBrowser';
 import { WithStyles, withStyles } from '@material-ui/styles';
@@ -68,14 +68,20 @@ class EventInfo extends React.Component<EventInfoProps_> {
 
   private renderEventLocation() {
     const { event } = this.props;
-    if (!event.rentableId) {
+    if (!event.rentable) {
       return null;
     }
     return (
-      <>
-        <LocationOnIcon />
-        <Typography>{event.rentableId}</Typography>
-      </>
+      <Grid container>
+        <Grid item>
+          <LocationOnIcon fontSize="small" />
+        </Grid>
+        <Grid>
+          <Typography variant="caption">
+            {event.rentable.name}
+          </Typography>
+        </Grid>
+      </Grid>
     );
   }
 
@@ -94,7 +100,7 @@ class EventInfo extends React.Component<EventInfoProps_> {
     }
     return (
       <Link href={event.url} target="_blank" underline="none" >
-        <IconButton className={classes.button}>
+        <IconButton className={classes.button} size="small">
           <OpenInBrowserIcon />
         </IconButton>
       </Link>

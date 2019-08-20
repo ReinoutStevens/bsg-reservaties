@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon';
-import firebase from 'firebase/app';
+import firebase, { firestore } from 'firebase/app';
 import 'firebase/firestore';
 import 'firebase/auth';
 import { CalendarEvent, CreateCalendarEventInput } from './Events';
@@ -41,12 +41,14 @@ class BSGServices {
   }
 
   async getApprovedEvents(start: DateTime, end: DateTime): Promise<CalendarEvent[]> {
-    const snapshot = await this.db.collection('events')
+    const snapshotPromise = await this.db.collection('events')
       .where('start', '>=', start.toJSDate())
       .where('approved', '==', true)
       .orderBy('start')
       .orderBy('end', 'asc')
       .get();
+    const rentablesPromise = this.getRentables();
+    const [snapshot, rentables] = await Promise.all([snapshotPromise, rentablesPromise]);
     let events: CalendarEvent[] = [];
     for (const doc in snapshot.docs) {
       const res = snapshot.docs[doc];
@@ -54,27 +56,21 @@ class BSGServices {
       if (end < data.end) {
         break;
       }
-      const event: CalendarEvent = {
-        id: res.id,
-        start: DateTime.fromJSDate(data.start.toDate()),
-        end: DateTime.fromJSDate(data.end.toDate()),
-        title: data.title,
-        description: data.description,
-        approved: data.approved,
-        rentableId: data.rentableId,
-        url: data.url,
-      };
+      const event = this.mapEvent(res, data, rentables);
+
       events.push(event);
     }
     return events;
   }
 
   async getAllEvents(start: DateTime, end: DateTime): Promise<CalendarEvent[]> {
-    const snapshot = await this.db.collection('events')
+    const snapshotPromise = this.db.collection('events')
       .where('start', '>=', start.toJSDate())
       .orderBy('start')
       .orderBy('end', 'asc')
       .get();
+    const rentablesPromise = this.getRentables();
+    const [snapshot, rentables] = await Promise.all([snapshotPromise, rentablesPromise]);
     let events: CalendarEvent[] = [];
     for (const doc in snapshot.docs) {
       const res = snapshot.docs[doc];
@@ -82,16 +78,8 @@ class BSGServices {
       if (end < data.end) {
         break;
       }
-      const event: CalendarEvent = {
-        id: res.id,
-        start: DateTime.fromJSDate(data.start.toDate()),
-        end: DateTime.fromJSDate(data.end.toDate()),
-        title: data.title,
-        description: data.description,
-        approved: data.approved,
-        rentableId: data.rentableId,
-        url: data.url,
-      };
+      const event = this.mapEvent(res, data, rentables);
+
       events.push(event);
     }
     return events;
@@ -143,6 +131,24 @@ class BSGServices {
   async createUser(user: NewUserInput) {
     await this.auth.createUserWithEmailAndPassword(user.email, user.password);
     return user;
+  }
+
+  private mapEvent(
+    docSnapshot: firestore.QueryDocumentSnapshot,
+    data: firestore.DocumentData,
+    rentables: Rentable[]
+  ): CalendarEvent {
+    (console).log(rentables, data.rentableId);
+    return {
+      id: docSnapshot.id,
+      start: DateTime.fromJSDate(data.start.toDate()),
+      end: DateTime.fromJSDate(data.end.toDate()),
+      title: data.title,
+      description: data.description,
+      approved: data.approved,
+      rentable: data.rentableId ? rentables.find((r) => r.id === data.rentableId) : undefined,
+      url: data.url,
+    }
   }
 }
 

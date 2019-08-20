@@ -1,4 +1,5 @@
 import { DateTime } from 'luxon';
+import { Rentable } from './Rentable';
 export interface CalendarEvent {
   id: string;
   start: DateTime;
@@ -6,7 +7,7 @@ export interface CalendarEvent {
   title: string;
   description: string | null;
   approved: boolean;
-  rentableId?: string;
+  rentable?: Rentable;
   url?: string;
 }
 

@@ -44,6 +44,12 @@ class EventsCalendar extends React.Component<EventsCalenderProps> {
           ref={this.calendarComponentRef}
           events={this.getEvents}
           eventClick={this.onEventClick}
+          eventTimeFormat={{
+            hour: '2-digit',
+            minute: '2-digit',
+            meridiem: false,
+            hour12: false,
+          }}
           {...calendarProps}
         />
       </div>
@@ -89,7 +95,7 @@ class EventsCalendar extends React.Component<EventsCalenderProps> {
       description: event.extendedProps.description,
       url: event.url,
       id: event.id,
-      rentableId: event.extendedProps.rentableId,
+      rentable: event.extendedProps.rentable,
       approved: event.extendedProps.approved,
     }
     jsEvent.preventDefault();
