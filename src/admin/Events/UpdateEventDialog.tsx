@@ -4,7 +4,6 @@ import {
   TextField,
   DialogTitle,
   DialogContent,
-  DialogContentText,
   DialogActions,
   Button,
   Checkbox,
@@ -16,18 +15,17 @@ import { DateTime } from 'luxon';
 import {
   DateTimePicker, MaterialUiPickersDate, DatePicker,
 } from "@material-ui/pickers";
+import { ExtendedCalendarEvent } from '../../core/EventsCalendar/EventsCalendar';
 import withCalendar, { WithCalendar } from '../../core/EventsCalendar/withCalendar';
 import { CalendarEvent } from '../../services/Events';
 
-export interface NewEventDialogProps {
+export interface UpdateEventDialogProps {
   open: boolean;
   onClose: () => void;
-  start?: DateTime | null;
-  end?: DateTime | null;
-  allDay: boolean;
+  event: ExtendedCalendarEvent;
 }
 
-export interface NewEventDialogState {
+export interface UpdateEventDialogState {
   title: string;
   description: string;
   start: DateTime | null;
@@ -37,40 +35,44 @@ export interface NewEventDialogState {
   allDay: boolean;
 }
 
-type NewEventDialogProps_ = NewEventDialogProps & WithSnackbarProps & WithCalendar;
+type UpdateEventDialogProps_ = UpdateEventDialogProps & WithSnackbarProps & WithCalendar;
 
-class NewEventDialog extends React.Component<NewEventDialogProps_, NewEventDialogState> {
-  constructor(props: NewEventDialogProps_) {
+class UpdateEventDialog extends React.Component<UpdateEventDialogProps_, UpdateEventDialogState> {
+  constructor(props: UpdateEventDialogProps_) {
     super(props);
+    const { event } = props;
     this.state = {
-      title: '',
-      description: '',
-      url: null,
-      rentableId: null,
-      start: props.start || null,
-      end: props.end || null,
-      allDay: props.allDay,
+      title: event.title,
+      description: event.description || '',
+      url: event.url || null,
+      rentableId: event.rentable ? event.rentable.id : null,
+      start: event.start,
+      end: event.end,
+      allDay: false,
     }
   }
 
-  componentDidUpdate(prevProps: NewEventDialogProps) {
-    if (this.props.start !== prevProps.start || this.props.end !== prevProps.end) {
+  componentDidUpdate(prevProps: UpdateEventDialogProps) {
+    const { event } = this.props;
+    if (event.id !== prevProps.event.id) {
       this.setState({
-        start: this.props.start || null,
-        end: this.props.end || null,
-      });
+        title: event.title,
+        description: event.description || '',
+        url: event.url || null,
+        rentableId: event.rentable ? event.rentable.id : null,
+        start: event.start,
+        end: event.end,
+        allDay: false,
+      })
     }
   }
 
   render() {
-    const { open, onClose } = this.props;
+    const { open, onClose, event } = this.props;
     return (
       <Dialog open={open}>
-        <DialogTitle>Create Event</DialogTitle>
+        <DialogTitle>Edit {event.title}</DialogTitle>
         <DialogContent>
-          <DialogContentText>
-            Create a new event
-          </DialogContentText>
           {this.renderTitleField()}
           {this.renderDescriptionField()}
           {this.renderAllDay()}
@@ -81,42 +83,46 @@ class NewEventDialog extends React.Component<NewEventDialogProps_, NewEventDialo
           <Button onClick={onClose} color="primary">
             Cancel
           </Button>
-          <Button onClick={this.save} color="primary" disabled={!this.canSave()}>
-            Save
+          <Button onClick={this.update} color="primary" disabled={!this.canUpdate()}>
+            Update
           </Button>
         </DialogActions>
       </Dialog>
     );
   }
 
-  private canSave(): boolean {
+  private canUpdate(): boolean {
     const { title, start, end } = this.state;
     return !!(title && title.trim().length > 0 && start && end && end > start);
   }
 
-  private save = () => {
-    const { onClose, enqueueSnackbar } = this.props;
+  private update = () => {
+    const { onClose, enqueueSnackbar, event } = this.props;
     const { title, start, end, description, allDay } = this.state;
     const evInput = {
+      id: event.id,
       title: title!.trim(),
       start: allDay ? start!.startOf('day') : start!,
       end: allDay ? start!.endOf('day') : end!,
       description: description.length > 0 ? description : null,
+      approved: event.approved,
     }
-    BSGServices.getInstance().createEvent(evInput).then((ev) => {
-      enqueueSnackbar(`Created ${ev.title}`, { variant: 'success' });
-      this.props.onNewEvent(ev);
+    BSGServices.getInstance().updateEvent(evInput).then((res) => {
+      enqueueSnackbar(`Updated ${title}`, { variant: 'success' });
+      this.props.onUpdateEvent(event, res);
     }).catch((e) => {
       (console).error(e);
-      enqueueSnackbar(`Failed saving ${title}`, { variant: 'error' });
+      enqueueSnackbar(`Failed updating ${title}`, { variant: 'error' });
     })
     onClose();
   }
 
   private renderTitleField() {
+    const { title } = this.state;
     return (
       <TextField
         onChange={this.changeTitle}
+        value={title}
         fullWidth
         margin="dense"
         label="Title"
@@ -125,6 +131,7 @@ class NewEventDialog extends React.Component<NewEventDialogProps_, NewEventDialo
   }
 
   private renderDescriptionField() {
+    const { description } = this.state;
     return (
       <TextField
         onChange={this.changeDescription}
@@ -132,6 +139,7 @@ class NewEventDialog extends React.Component<NewEventDialogProps_, NewEventDialo
         multiline
         margin="dense"
         label="Description"
+        value={description}
       />
     );
   }
@@ -219,4 +227,4 @@ class NewEventDialog extends React.Component<NewEventDialogProps_, NewEventDialo
   }
 }
 
-export default withSnackbar(withCalendar(NewEventDialog));
+export default withSnackbar(withCalendar(UpdateEventDialog));

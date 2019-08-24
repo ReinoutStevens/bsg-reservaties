@@ -2,7 +2,7 @@ import { DateTime } from 'luxon';
 import firebase, { firestore } from 'firebase/app';
 import 'firebase/firestore';
 import 'firebase/auth';
-import { CalendarEvent, CreateCalendarEventInput } from './Events';
+import { CalendarEvent, CreateCalendarEventInput, UpdateCalendarEventInput } from './Events';
 
 interface Rentable {
   id: string;
@@ -98,6 +98,19 @@ class BSGServices {
       approved: false,
       id: ref.id,
     };
+  }
+
+  async updateEvent(input: UpdateCalendarEventInput): Promise<CalendarEvent> {
+    const { start, end, id } = input;
+    const ev = {
+      ...input,
+      start: start.toJSDate(),
+      end: end.toJSDate(),
+      approved: input.approved,
+    }
+    const ref = this.db.collection('events').doc(id);
+    await ref.update(ev);
+    return input;
   }
 
   deleteEvent(eventId: string): Promise<void> {

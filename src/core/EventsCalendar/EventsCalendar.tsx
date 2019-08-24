@@ -10,6 +10,7 @@ import { OptionsInput, EventApi } from '@fullcalendar/core';
 import { CalendarEvent } from '../../services/Events';
 
 import './EventsCalendar.scss';
+import EventsCalendarContext from './EventsCalendarContext';
 
 export type ExtendedCalendarEvent = CalendarEvent & { baseEvent: EventApi };
 
@@ -18,6 +19,9 @@ export interface EventsCalenderProps {
   events: (from: DateTime, to: DateTime) => Promise<CalendarEvent[]>
   onEventClick?: (event: ExtendedCalendarEvent, anchor: HTMLElement) => void;
 }
+
+
+
 
 class EventsCalendar extends React.Component<EventsCalenderProps> {
 
@@ -54,6 +58,34 @@ class EventsCalendar extends React.Component<EventsCalenderProps> {
           }}
           {...calendarProps}
         />
+        <EventsCalendarContext.Provider value={{
+          onDeleteEvent: (ev) => ev.baseEvent.remove(),
+          onUpdateEvent: (old, ev) => {
+            old.baseEvent.remove();
+            const cal = this.calendarComponentRef.current;
+            if (!cal) {
+              return;
+            }
+            cal.getApi().addEvent({
+              ...ev,
+              start: ev.start.toJSDate(),
+              end: ev.end.toJSDate(),
+            });
+          },
+          onNewEvent: (ev) => {
+            const cal = this.calendarComponentRef.current;
+            if (!cal) {
+              return;
+            }
+            cal.getApi().addEvent({
+              ...ev,
+              start: ev.start.toJSDate(),
+              end: ev.end.toJSDate(),
+            });
+          }
+        }}>
+          {this.props.children}
+        </EventsCalendarContext.Provider>
       </div>
     );
   }

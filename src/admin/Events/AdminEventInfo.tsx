@@ -3,19 +3,18 @@ import { Popover, Card, CardContent, Typography, Theme, createStyles, CardHeader
 import LocationOnIcon from '@material-ui/icons/LocationOn';
 import OpenInBrowserIcon from '@material-ui/icons/OpenInBrowser';
 import DeleteIcon from '@material-ui/icons/Delete';
+import EditIcon from '@material-ui/icons/Edit';
 import { WithStyles, withStyles } from '@material-ui/styles';
 import BSGServices from '../../services/BSGServices';
 import { withSnackbar, WithSnackbarProps } from 'notistack';
 import { ExtendedCalendarEvent } from '../../core/EventsCalendar/EventsCalendar';
+import UpdateEventDialog from './UpdateEventDialog';
+import { CalendarEvent } from '../../services/Events';
 
 const styles = (theme: Theme) => createStyles({
   button: {
     margin: theme.spacing(1),
   },
-  adminButton: {
-    margin: theme.spacing(1),
-    marginLeft: 'auto',
-  }
 });
 
 export interface AdminEventInfoProps {
@@ -27,6 +26,7 @@ export interface AdminEventInfoProps {
 
 export interface AdminEventInfoState {
   showDeleteDialog: boolean;
+  showUpdateDialog: boolean;
 }
 
 type AdminEventInfoProps_ = AdminEventInfoProps & WithStyles<typeof styles> & WithSnackbarProps;
@@ -37,6 +37,7 @@ class AdminEventInfo extends React.Component<AdminEventInfoProps_, AdminEventInf
     super(props);
     this.state = {
       showDeleteDialog: false,
+      showUpdateDialog: false,
     };
   }
 
@@ -55,6 +56,7 @@ class AdminEventInfo extends React.Component<AdminEventInfoProps_, AdminEventInf
         >
           {this.renderEvent()}
         </Popover>
+        {this.renderUpdateDialog()}
         {this.renderDeleteDialog()}
       </>
     )
@@ -104,6 +106,23 @@ class AdminEventInfo extends React.Component<AdminEventInfoProps_, AdminEventInf
         </Grid>
       </Grid>
     );
+  }
+
+  private renderUpdateDialog() {
+    return (
+      <UpdateEventDialog
+        event={this.props.event}
+        open={this.state.showUpdateDialog}
+        onClose={this.closeDialogClose} />
+    );
+  }
+
+  private openUpdateDialog = () => {
+    this.setState({ showUpdateDialog: true });
+  }
+
+  private closeDialogClose = () => {
+    this.setState({ showUpdateDialog: false });
   }
 
   private renderDeleteDialog() {
@@ -156,9 +175,18 @@ class AdminEventInfo extends React.Component<AdminEventInfoProps_, AdminEventInf
   private renderActions() {
     return (
       <CardActions disableSpacing>
-        {this.renderUrlAction()}
-        {this.renderDeleteAction()}
-      </CardActions>
+        <Grid container>
+          <Grid item style={{ flex: 1 }}>
+            {this.renderUrlAction()}
+          </Grid>
+          <Grid item>
+            {this.renderUpdateAction()}
+          </Grid>
+          <Grid item>
+            {this.renderDeleteAction()}
+          </Grid>
+        </Grid>
+      </CardActions >
     )
   }
 
@@ -179,8 +207,17 @@ class AdminEventInfo extends React.Component<AdminEventInfoProps_, AdminEventInf
   private renderDeleteAction() {
     const { classes } = this.props;
     return (
-      <IconButton className={classes.adminButton} size="small" onClick={this.openDeleteDialog}>
+      <IconButton className={classes.button} size="small" onClick={this.openDeleteDialog}>
         <DeleteIcon />
+      </IconButton>
+    )
+  }
+
+  private renderUpdateAction() {
+    const { classes } = this.props;
+    return (
+      <IconButton className={classes.button} size="small" onClick={this.openUpdateDialog}>
+        <EditIcon />
       </IconButton>
     )
   }

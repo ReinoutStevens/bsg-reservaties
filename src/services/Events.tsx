@@ -19,3 +19,14 @@ export interface CreateCalendarEventInput {
   rentableId?: string;
   url?: string;
 }
+
+export interface UpdateCalendarEventInput {
+  id: string;
+  start: DateTime;
+  end: DateTime;
+  title: string;
+  description: string | null;
+  rentableId?: string;
+  url?: string;
+  approved: boolean;
+}

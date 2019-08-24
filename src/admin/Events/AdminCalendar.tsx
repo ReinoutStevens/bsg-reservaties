@@ -14,6 +14,7 @@ interface EventsState {
   activeEvent: ExtendedCalendarEvent | null;
 }
 
+
 class AdminCalendar extends React.Component<{}, EventsState> {
 
   constructor(props: {}) {
