@@ -15,13 +15,6 @@ interface NewRentableInput {
   color: string;
 }
 
-interface NewUserInput {
-  email: string;
-}
-
-interface CompleteSigninInput {
-  email: string;
-}
 
 class BSGServices {
   private static instance: BSGServices;
@@ -35,12 +28,10 @@ class BSGServices {
 
 
   private db: firebase.firestore.Firestore;
-  private auth: firebase.auth.Auth;
 
 
   private constructor() {
     this.db = firebase.firestore();
-    this.auth = firebase.auth();
   }
 
   async getApprovedEvents(start: DateTime, end: DateTime): Promise<CalendarEvent[]> {
@@ -148,27 +139,7 @@ class BSGServices {
     }
   }
 
-  async createUser(input: NewUserInput) {
-    await this.auth.sendSignInLinkToEmail(input.email, {
-      url: 'http://localhost:3000/signup',
-      handleCodeInApp: true,
-    });
-  }
 
-  async completeSignin({ email }: CompleteSigninInput) {
-    if (firebase.auth().isSignInWithEmailLink(window.location.href)) {
-      // Additional state parameters can also be passed via URL.
-      // This can be used to continue the user's intended action before triggering
-      // the sign-in operation.
-      // Get the email if available. This should be available if the user completes
-      // the flow on the same device where they started it.
-
-      // The client SDK will parse the code from the link for you.
-      await firebase.auth().signInWithEmailLink(email, window.location.href);
-    } else {
-      throw new Error('Unexpected window location');
-    }
-  }
 
   private mapEvent(
     docSnapshot: firestore.QueryDocumentSnapshot,

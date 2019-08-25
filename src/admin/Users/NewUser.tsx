@@ -1,8 +1,11 @@
 import React from 'react';
 import { WithSnackbarProps, withSnackbar } from 'notistack';
-import { Paper, TextField, Button, CircularProgress, createStyles, Typography, Theme } from '@material-ui/core';
-import BSGServices from '../../services/BSGServices';
+import { TextField, Button, CircularProgress, createStyles, Theme } from '@material-ui/core';
 import { WithStyles, withStyles } from '@material-ui/styles';
+import withFirebase, { WithFirebase } from '../../core/Session/withFirebase';
+import validEmail from '../../util/validEmail';
+import PersonAddIcon from '@material-ui/icons/PersonAdd';
+import Form from '../../core/Form/Form';
 
 interface NewUserProps {
 }
@@ -15,11 +18,11 @@ interface NewUserState {
 
 const styles = (theme: Theme) => createStyles({
   button: {
-    margin: theme.spacing(),
+    margin: theme.spacing(3, 0, 2),
   }
 });
 
-type NewUserProps_ = NewUserProps & WithSnackbarProps & WithStyles<typeof styles>;
+type NewUserProps_ = NewUserProps & WithSnackbarProps & WithStyles<typeof styles> & WithFirebase;
 
 class NewUser extends React.Component<NewUserProps_, NewUserState> {
   constructor(props: NewUserProps_) {
@@ -33,20 +36,19 @@ class NewUser extends React.Component<NewUserProps_, NewUserState> {
   render() {
     const { email } = this.state;
     return (
-      <>
-        <Typography variant="h5">Create User</Typography>
-        <Paper>
-          <TextField
-            value={email}
-            onChange={this.onEmailChange}
-            type="email"
-            autoComplete="email"
-            fullWidth
-            label="Email"
-          />
-          {this.renderButton()}
-        </Paper>
-      </>
+      <Form title="Create User" icon={<PersonAddIcon />}>
+        <TextField
+          variant="outlined"
+          margin="normal"
+          value={email}
+          onChange={this.onEmailChange}
+          type="email"
+          label="Email"
+          fullWidth
+          required
+        />
+        {this.renderButton()}
+      </Form>
     );
   }
 
@@ -63,24 +65,27 @@ class NewUser extends React.Component<NewUserProps_, NewUserState> {
           disabled={!this.canSubmit()}
           variant="contained"
           className={classes.button}
+          type="submit"
+          fullWidth
         >
           Create User
-            </Button>
+        </Button>
       );
     }
   }
 
   private canSubmit(): boolean {
     const { email } = this.state;
-    return email.length > 3 && !!email.match(/.+@.+\..+/);
+    return validEmail(email);
   }
 
   private submit = async () => {
     this.setState({ saving: true });
+    const { firebase } = this.props;
     const { email } = this.state;
     try {
-      await BSGServices.getInstance().createUser({ email });
-      this.props.enqueueSnackbar('Invitation email sent', { variant: 'success' });
+      await firebase.createUser({ email });
+      this.props.enqueueSnackbar('Invitation email sent');
       this.setState({ saving: false, email: '' });
     } catch (e) {
       console.error(e);
@@ -94,4 +99,4 @@ class NewUser extends React.Component<NewUserProps_, NewUserState> {
   }
 }
 
-export default withSnackbar(withStyles(styles)(NewUser));
+export default withFirebase(withSnackbar(withStyles(styles)(NewUser)));

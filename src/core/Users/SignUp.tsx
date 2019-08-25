@@ -1,7 +1,7 @@
 import React from 'react';
 import { Paper, Typography, CircularProgress, TextField, WithStyles, Button, Theme } from '@material-ui/core';
 import { withStyles, createStyles } from '@material-ui/styles';
-import BSGServices from '../../services/BSGServices';
+import withFirebase, { WithFirebase } from '../Session/withFirebase';
 
 export interface SignUpProps {
 
@@ -19,7 +19,7 @@ const styles = (theme: Theme) => createStyles({
   },
 });
 
-type SignUpProps_ = SignUpProps & WithStyles<typeof styles>;
+type SignUpProps_ = SignUpProps & WithStyles<typeof styles> & WithFirebase;
 
 class SignUp extends React.Component<SignUpProps_, SignUpState> {
   constructor(props: SignUpProps_) {
@@ -94,10 +94,11 @@ class SignUp extends React.Component<SignUpProps_, SignUpState> {
   }
 
   private submit = async () => {
+    const { firebase } = this.props;
     const { email } = this.state;
     this.setState({ saving: true, error: null });
     try {
-      await BSGServices.getInstance().completeSignin({ email });
+      await firebase.completeSignIn({ email });
       this.setState({ saving: false });
     } catch (e) {
       this.setState({ error: e.message, saving: false });
@@ -106,4 +107,4 @@ class SignUp extends React.Component<SignUpProps_, SignUpState> {
   }
 }
 
-export default withStyles(styles)(SignUp);
+export default withFirebase(withStyles(styles)(SignUp));

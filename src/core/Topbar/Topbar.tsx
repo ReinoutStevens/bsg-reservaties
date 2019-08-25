@@ -7,7 +7,7 @@ import MenuIcon from '@material-ui/icons/Menu';
 import { createStyles, Theme, withStyles } from '@material-ui/core/styles';
 import { WithStyles } from '@material-ui/styles';
 import AdminMenu from '../../admin/Menu/AdminMenu';
-import { Drawer, Link } from '@material-ui/core';
+import { Drawer, Link, Typography } from '@material-ui/core';
 import { Link as RouterLink } from 'react-router-dom';
 
 const styles = (theme: Theme) => createStyles({
@@ -21,6 +21,9 @@ const styles = (theme: Theme) => createStyles({
     flexGrow: 1,
     color: theme.palette.primary.contrastText,
   },
+  signIn: {
+    color: theme.palette.primary.contrastText,
+  }
 });
 
 export interface TopBarState {
@@ -59,9 +62,17 @@ class TopBar extends React.Component<TopBarProps_, TopBarState> {
               className={classes.title}
               underline={'none'}
             >
-              BSG Reservaties
+              <Typography variant="h6">BSG Reservaties</Typography>
+              <Typography variant="subtitle2">In Tomat zijn jaar was alles beter</Typography>
             </Link>
-            <Button color="inherit">Login</Button>
+            <Link
+              component={RouterLink}
+              className={classes.signIn}
+              underline={'none'}
+              to="/signin"
+            >
+              <Button color="inherit">Login</Button>
+            </Link>
           </Toolbar>
         </AppBar>
         {this.renderDrawer()}

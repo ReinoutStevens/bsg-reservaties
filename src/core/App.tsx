@@ -10,13 +10,15 @@ import AppRoutes from './Routes/AppRoutes';
 import { SnackbarProvider } from 'notistack';
 import { MuiPickersUtilsProvider } from '@material-ui/pickers';
 import LuxonUtils from '@date-io/luxon';
+import FirebaseContext from './Session/FirebaseContext';
+import Firebase from './Session/Firebase';
 
 const theme = createMuiTheme();
 
 
 const App: React.FC = () => {
   return (
-    <>
+    <FirebaseContext.Provider value={{ firebase: new Firebase() }}>
       <ThemeProvider theme={theme}>
         <MuiPickersUtilsProvider utils={LuxonUtils}>
           <SnackbarProvider>
@@ -26,14 +28,14 @@ const App: React.FC = () => {
             <CssBaseline />
             <Router>
               <TopBar />
-              <Container>
+              <Container component="main">
                 <AppRoutes />
               </Container>
             </Router>
           </SnackbarProvider>
         </MuiPickersUtilsProvider>
       </ThemeProvider>
-    </>
+    </FirebaseContext.Provider>
   );
 }
 
