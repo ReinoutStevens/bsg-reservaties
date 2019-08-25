@@ -9,7 +9,6 @@ import BSGServices from '../../services/BSGServices';
 import { withSnackbar, WithSnackbarProps } from 'notistack';
 import { ExtendedCalendarEvent } from '../../core/EventsCalendar/EventsCalendar';
 import UpdateEventDialog from './UpdateEventDialog';
-import { CalendarEvent } from '../../services/Events';
 
 const styles = (theme: Theme) => createStyles({
   button: {
@@ -113,7 +112,7 @@ class AdminEventInfo extends React.Component<AdminEventInfoProps_, AdminEventInf
       <UpdateEventDialog
         event={this.props.event}
         open={this.state.showUpdateDialog}
-        onClose={this.closeDialogClose} />
+        onClose={this.closeUpdateDialog} />
     );
   }
 
@@ -121,8 +120,9 @@ class AdminEventInfo extends React.Component<AdminEventInfoProps_, AdminEventInf
     this.setState({ showUpdateDialog: true });
   }
 
-  private closeDialogClose = () => {
+  private closeUpdateDialog = () => {
     this.setState({ showUpdateDialog: false });
+    this.props.onClose();
   }
 
   private renderDeleteDialog() {

@@ -17,7 +17,6 @@ import {
 } from "@material-ui/pickers";
 import { ExtendedCalendarEvent } from '../../core/EventsCalendar/EventsCalendar';
 import withCalendar, { WithCalendar } from '../../core/EventsCalendar/withCalendar';
-import { CalendarEvent } from '../../services/Events';
 
 export interface UpdateEventDialogProps {
   open: boolean;

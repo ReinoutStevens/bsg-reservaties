@@ -1,7 +1,6 @@
 import React from 'react';
 import { ExtendedCalendarEvent } from './EventsCalendar';
 import { CalendarEvent } from '../../services/Events';
-import FullCalendar from '@fullcalendar/react';
 
 export interface EventsCalendarContextProps {
   onUpdateEvent: (oldEvent: ExtendedCalendarEvent, event: CalendarEvent) => void;

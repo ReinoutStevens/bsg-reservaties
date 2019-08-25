@@ -17,7 +17,10 @@ interface NewRentableInput {
 
 interface NewUserInput {
   email: string;
-  password: string;
+}
+
+interface CompleteSigninInput {
+  email: string;
 }
 
 class BSGServices {
@@ -145,9 +148,26 @@ class BSGServices {
     }
   }
 
-  async createUser(user: NewUserInput) {
-    await this.auth.createUserWithEmailAndPassword(user.email, user.password);
-    return user;
+  async createUser(input: NewUserInput) {
+    await this.auth.sendSignInLinkToEmail(input.email, {
+      url: 'http://localhost:3000/signup',
+      handleCodeInApp: true,
+    });
+  }
+
+  async completeSignin({ email }: CompleteSigninInput) {
+    if (firebase.auth().isSignInWithEmailLink(window.location.href)) {
+      // Additional state parameters can also be passed via URL.
+      // This can be used to continue the user's intended action before triggering
+      // the sign-in operation.
+      // Get the email if available. This should be available if the user completes
+      // the flow on the same device where they started it.
+
+      // The client SDK will parse the code from the link for you.
+      await firebase.auth().signInWithEmailLink(email, window.location.href);
+    } else {
+      throw new Error('Unexpected window location');
+    }
   }
 
   private mapEvent(
@@ -155,7 +175,6 @@ class BSGServices {
     data: firestore.DocumentData,
     rentables: Rentable[]
   ): CalendarEvent {
-    (console).log(rentables, data.rentableId);
     return {
       id: docSnapshot.id,
       start: DateTime.fromJSDate(data.start.toDate()),

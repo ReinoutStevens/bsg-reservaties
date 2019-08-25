@@ -33,22 +33,21 @@ class AdminCalendar extends React.Component<{}, EventsState> {
   render() {
     const { dialogOpen, start, end, allDay } = this.state;
     return (
-      <>
-        <EventsCalendar
-          events={this.getEvents}
-          calendarProps={
-            {
-              selectable: true,
-              selectConstraint: {
-                start: '00:01',
-                end: '23:59',
-              },
-              dateClick: this.handleDateClick,
-              select: this.handleDateSelect,
-            }
+      <EventsCalendar
+        events={this.getEvents}
+        calendarProps={
+          {
+            selectable: true,
+            selectConstraint: {
+              start: '00:01',
+              end: '23:59',
+            },
+            dateClick: this.handleDateClick,
+            select: this.handleDateSelect,
           }
-          onEventClick={this.onEventClick}
-        />
+        }
+        onEventClick={this.onEventClick}
+      >
         {this.renderEventInfo()}
         <NewEventDialog
           open={dialogOpen}
@@ -57,8 +56,8 @@ class AdminCalendar extends React.Component<{}, EventsState> {
           onClose={this.onDialogClose}
           allDay={allDay}
         />
-      </>
-    )
+      </ EventsCalendar>
+    );
   }
 
   private renderEventInfo() {

@@ -17,7 +17,6 @@ import {
   DateTimePicker, MaterialUiPickersDate, DatePicker,
 } from "@material-ui/pickers";
 import withCalendar, { WithCalendar } from '../../core/EventsCalendar/withCalendar';
-import { CalendarEvent } from '../../services/Events';
 
 export interface NewEventDialogProps {
   open: boolean;
