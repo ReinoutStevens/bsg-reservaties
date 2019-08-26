@@ -19,22 +19,22 @@ const theme = createMuiTheme();
 const App: React.FC = () => {
   return (
     <FirebaseContext.Provider value={{ firebase: new Firebase() }}>
-      <ThemeProvider theme={theme}>
-        <MuiPickersUtilsProvider utils={LuxonUtils}>
-          <SnackbarProvider>
-            <Helmet>
-              <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
-            </Helmet>
-            <CssBaseline />
-            <Router>
+      <Router>
+        <ThemeProvider theme={theme}>
+          <MuiPickersUtilsProvider utils={LuxonUtils}>
+            <SnackbarProvider>
+              <Helmet>
+                <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
+              </Helmet>
+              <CssBaseline />
               <TopBar />
               <Container component="main">
                 <AppRoutes />
               </Container>
-            </Router>
-          </SnackbarProvider>
-        </MuiPickersUtilsProvider>
-      </ThemeProvider>
+            </SnackbarProvider>
+          </MuiPickersUtilsProvider>
+        </ThemeProvider>
+      </Router>
     </FirebaseContext.Provider>
   );
 }

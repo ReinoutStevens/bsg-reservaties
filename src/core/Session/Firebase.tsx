@@ -53,7 +53,10 @@ class Firebase {
   }
 
   passwordReset(email: string): Promise<void> {
-    return this.auth.sendPasswordResetEmail(email);
+    return this.auth.sendPasswordResetEmail(email, {
+      url: 'http://localhost:3000/signin',
+      handleCodeInApp: false,
+    });
   }
 
   async completeSignIn({ email }: CompleteSignInInput) {

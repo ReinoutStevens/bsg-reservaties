@@ -2,41 +2,40 @@ import withFirebase, { WithFirebase } from "./withFirebase";
 import React from 'react';
 import { Typography, Grid, Link } from "@material-ui/core";
 import validEmail from "../../util/validEmail";
-import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import Form from "../Form/Form";
 import FormField from "../Form/FormField";
 import FormButton from "../Form/FormButton";
+import { withSnackbar, WithSnackbarProps } from "notistack";
+import { withRouter, RouteComponentProps } from "react-router";
 
-export interface SignInProps {
+export interface ForgotPasswordProps {
 
 }
 
-export interface SignInState {
+export interface ForgotPasswordState {
   saving: boolean;
   email: string;
-  password: string;
   error: string | null;
 }
 
 
-type SignInProps_ = SignInProps & WithFirebase;
+type ForgotPasswordProps_ = ForgotPasswordProps & WithFirebase & WithSnackbarProps & RouteComponentProps;
 
 
-class SignIn extends React.Component<SignInProps_, SignInState> {
-  constructor(props: SignInProps_) {
+class ForgotPassword extends React.Component<ForgotPasswordProps_, ForgotPasswordState> {
+  constructor(props: ForgotPasswordProps_) {
     super(props);
     this.state = {
       saving: false,
       email: '',
-      password: '',
       error: null,
     };
   }
 
   render() {
-    const { email, password } = this.state;
+    const { email } = this.state;
     return (
-      <Form title="Sign In" icon={<LockOutlinedIcon />}>
+      <Form title="Reset Password">
         <FormField
           label="Email"
           value={email}
@@ -46,15 +45,6 @@ class SignIn extends React.Component<SignInProps_, SignInState> {
           fullWidth
           required
         />
-        <FormField
-          label="Password"
-          value={password}
-          onChange={this.onPasswordChange}
-          type="password"
-          fullWidth
-          required
-        />
-
         <FormButton
           disabled={!this.canSubmit()}
           type="submit"
@@ -62,13 +52,13 @@ class SignIn extends React.Component<SignInProps_, SignInState> {
           onClick={this.onSubmit}
           fullWidth
         >
-          Sign In
+          Reset Password
         </FormButton>
         {this.renderError()}
         <Grid container>
           <Grid item xs>
-            <Link href="/pw-forget" variant="body2">
-              Forgot password?
+            <Link href="/signin" variant="body2">
+              Sign In
             </Link>
           </Grid>
           <Grid item>
@@ -90,17 +80,19 @@ class SignIn extends React.Component<SignInProps_, SignInState> {
   }
 
   private canSubmit(): boolean {
-    const { email, password } = this.state;
-    return validEmail(email) && password.length > 0;
+    const { email } = this.state;
+    return validEmail(email);
   }
 
   private onSubmit = async () => {
     const { firebase } = this.props;
-    const { email, password } = this.state;
+    const { email } = this.state;
     try {
       this.setState({ error: null });
-      await firebase.signIn({ email, password });
+      (console).log('hello');
+      await firebase.passwordReset(email);
     } catch (e) {
+      (console).error(e);
       this.setState({ error: e.message });
     }
   };
@@ -108,10 +100,6 @@ class SignIn extends React.Component<SignInProps_, SignInState> {
   private onEmailChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
     this.setState({ email: ev.currentTarget.value });
   };
-
-  private onPasswordChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
-    this.setState({ password: ev.currentTarget.value });
-  }
 }
 
-export default withFirebase(SignIn);
+export default withRouter(withSnackbar(withFirebase(ForgotPassword)));
