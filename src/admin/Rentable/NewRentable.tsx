@@ -1,6 +1,5 @@
 import React from 'react';
 import { SketchPicker, ColorResult } from 'react-color';
-import BSGServices from '../../services/BSGServices';
 import { withSnackbar, WithSnackbarProps } from 'notistack';
 import MeetinRoomIcon from '@material-ui/icons/MeetingRoom';
 import FormField from '../../core/Form/FormField';
@@ -8,6 +7,7 @@ import Form from '../../core/Form/Form';
 import FormButton from '../../core/Form/FormButton';
 import { createStyles } from '@material-ui/core';
 import { withStyles, WithStyles } from '@material-ui/styles';
+import withServices, { WithServices } from '../../services/withServices';
 
 export interface NewRentableProps {
 
@@ -25,7 +25,7 @@ const styles = () => createStyles({
   }
 });
 
-type NewRentableProps_ = NewRentableProps & WithSnackbarProps & WithStyles<typeof styles>;
+type NewRentableProps_ = NewRentableProps & WithSnackbarProps & WithStyles<typeof styles> & WithServices;
 
 class NewRentable extends React.Component<NewRentableProps_, NewRentableState> {
   constructor(props: NewRentableProps_) {
@@ -54,9 +54,9 @@ class NewRentable extends React.Component<NewRentableProps_, NewRentableState> {
   }
 
   private save = () => {
-    const { enqueueSnackbar } = this.props;
+    const { enqueueSnackbar, services } = this.props;
     const { name, color } = this.state;
-    BSGServices.getInstance().createRentable({ name, color: color! }).then((rentable) => {
+    services.events.createRentable({ name, color: color! }).then((rentable) => {
       enqueueSnackbar(`Created ${rentable.name}`);
     }).catch(() => {
       enqueueSnackbar(`Failed saving ${name}`);
@@ -95,4 +95,4 @@ class NewRentable extends React.Component<NewRentableProps_, NewRentableState> {
   }
 }
 
-export default withStyles(styles)(withSnackbar(NewRentable));
+export default withStyles(styles)(withSnackbar(withServices(NewRentable)));

@@ -3,6 +3,7 @@ import firebase, { firestore } from 'firebase/app';
 import 'firebase/firestore';
 import 'firebase/auth';
 import { CalendarEvent, CreateCalendarEventInput, UpdateCalendarEventInput } from './Events';
+import Firebase from '../core/Session/Firebase';
 
 interface Rentable {
   id: string;
@@ -16,22 +17,13 @@ interface NewRentableInput {
 }
 
 
-class BSGServices {
-  private static instance: BSGServices;
-
-  static getInstance(): BSGServices {
-    if (!BSGServices.instance) {
-      BSGServices.instance = new BSGServices();
-    }
-    return BSGServices.instance;
-  }
-
+class EventServices {
 
   private db: firebase.firestore.Firestore;
 
 
-  private constructor() {
-    this.db = firebase.firestore();
+  constructor(firebase: Firebase) {
+    this.db = firebase.db;
   }
 
   async getApprovedEvents(start: DateTime, end: DateTime): Promise<CalendarEvent[]> {
@@ -139,8 +131,6 @@ class BSGServices {
     }
   }
 
-
-
   private mapEvent(
     docSnapshot: firestore.QueryDocumentSnapshot,
     data: firestore.DocumentData,
@@ -159,4 +149,4 @@ class BSGServices {
   }
 }
 
-export default BSGServices;
+export default EventServices;

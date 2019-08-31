@@ -6,6 +6,8 @@ import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import Form from "../Form/Form";
 import FormField from "../Form/FormField";
 import FormButton from "../Form/FormButton";
+import { withSnackbar, WithSnackbarProps } from "notistack";
+import { withRouter, RouteComponentProps } from "react-router";
 
 export interface SignInProps {
 
@@ -19,7 +21,7 @@ export interface SignInState {
 }
 
 
-type SignInProps_ = SignInProps & WithFirebase;
+type SignInProps_ = SignInProps & WithFirebase & WithSnackbarProps & RouteComponentProps;
 
 
 class SignIn extends React.Component<SignInProps_, SignInState> {
@@ -94,12 +96,15 @@ class SignIn extends React.Component<SignInProps_, SignInState> {
     return validEmail(email) && password.length > 0;
   }
 
-  private onSubmit = async () => {
-    const { firebase } = this.props;
+  private onSubmit = async (ev: React.MouseEvent) => {
+    ev.preventDefault();
+    const { firebase, enqueueSnackbar, history } = this.props;
     const { email, password } = this.state;
     try {
       this.setState({ error: null });
       await firebase.signIn({ email, password });
+      enqueueSnackbar('Successfully logged in');
+      history.push('/');
     } catch (e) {
       this.setState({ error: e.message });
     }
@@ -114,4 +119,4 @@ class SignIn extends React.Component<SignInProps_, SignInState> {
   }
 }
 
-export default withFirebase(SignIn);
+export default withRouter(withSnackbar(withFirebase(SignIn)));

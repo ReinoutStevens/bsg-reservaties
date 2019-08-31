@@ -9,6 +9,7 @@ import { WithStyles } from '@material-ui/styles';
 import AdminMenu from '../../admin/Menu/AdminMenu';
 import { Drawer, Link, Typography } from '@material-ui/core';
 import { Link as RouterLink } from 'react-router-dom';
+import withFirebase, { WithFirebase } from '../Session/withFirebase';
 
 const styles = (theme: Theme) => createStyles({
   root: {
@@ -23,6 +24,9 @@ const styles = (theme: Theme) => createStyles({
   },
   signIn: {
     color: theme.palette.primary.contrastText,
+  },
+  signOut: {
+    color: theme.palette.primary.contrastText,
   }
 });
 
@@ -30,7 +34,7 @@ export interface TopBarState {
   menuOpen: boolean;
 }
 
-type TopBarProps_ = WithStyles<typeof styles>;
+type TopBarProps_ = WithStyles<typeof styles> & WithFirebase;
 
 class TopBar extends React.Component<TopBarProps_, TopBarState> {
   constructor(props: TopBarProps_) {
@@ -41,20 +45,23 @@ class TopBar extends React.Component<TopBarProps_, TopBarState> {
   }
 
   render() {
-    const { classes } = this.props;
+    const { classes, currentUser } = this.props;
     return (
       <div className={classes.root}>
         <AppBar position="static">
           <Toolbar>
-            <IconButton
-              edge="start"
-              className={classes.menuButton}
-              color="inherit"
-              aria-label="menu"
-              onClick={this.toggleMenu}
-            >
-              <MenuIcon />
-            </IconButton>
+            {
+              currentUser &&
+              <IconButton
+                edge="start"
+                className={classes.menuButton}
+                color="inherit"
+                aria-label="menu"
+                onClick={this.toggleMenu}
+              >
+                <MenuIcon />
+              </IconButton>
+            }
             <Link
               component={RouterLink}
               to="/"
@@ -65,18 +72,43 @@ class TopBar extends React.Component<TopBarProps_, TopBarState> {
               <Typography variant="h6">BSG Reservaties</Typography>
               <Typography variant="subtitle2">In Tomat zijn jaar was alles beter</Typography>
             </Link>
-            <Link
-              component={RouterLink}
-              className={classes.signIn}
-              underline={'none'}
-              to="/signin"
-            >
-              <Button color="inherit">Login</Button>
-            </Link>
+           {this.renderSignInOut()}
           </Toolbar>
         </AppBar>
         {this.renderDrawer()}
       </div>
+    );
+  }
+
+  private renderSignInOut() {
+    const { currentUser} = this.props;
+    if (currentUser) {
+      return this.renderSignOut();
+    } else {
+      return this.renderSignIn();
+    }
+  }
+
+  private renderSignIn() {
+    const { classes } = this.props;
+    return (
+      <Link
+        component={RouterLink}
+        className={classes.signIn}
+        underline={'none'}
+        to="/signin"
+      >
+        <Button color="inherit">Login</Button>
+      </Link>
+    );
+  }
+
+  private renderSignOut() {
+    const { classes, firebase } = this.props;
+    return (
+      <Button color="inherit" className={classes.signIn} onClick={() => firebase.signOut()}>
+        Sign Out
+      </Button>
     );
   }
 
@@ -94,4 +126,4 @@ class TopBar extends React.Component<TopBarProps_, TopBarState> {
   }
 }
 
-export default withStyles(styles)(TopBar);
+export default withStyles(styles)(withFirebase(TopBar));

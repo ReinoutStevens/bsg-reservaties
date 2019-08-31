@@ -1,9 +1,9 @@
 import React from 'react';
-import BSGServices from '../../services/BSGServices';
 import { DateTime } from 'luxon';
 import NewEventDialog from './NewEventDialog';
 import EventsCalendar, { ExtendedCalendarEvent } from '../../core/EventsCalendar/EventsCalendar';
 import AdminEventInfo from './AdminEventInfo';
+import withServices, { WithServices } from '../../services/withServices';
 
 interface EventsState {
   start: DateTime | null;
@@ -15,10 +15,10 @@ interface EventsState {
 }
 
 
-class AdminCalendar extends React.Component<{}, EventsState> {
+class AdminCalendar extends React.Component<WithServices, EventsState> {
 
-  constructor(props: {}) {
-    super(props)
+  constructor(props: WithServices) {
+    super(props);
     this.state = {
       start: null,
       end: null,
@@ -122,8 +122,9 @@ class AdminCalendar extends React.Component<{}, EventsState> {
   }
 
   private getEvents = (start: DateTime, end: DateTime) => {
-    return BSGServices.getInstance().getAllEvents(start, end);
+    const { services } = this.props;
+    return services.events.getAllEvents(start, end);
   }
 }
 
-export default AdminCalendar;
+export default withServices(AdminCalendar);

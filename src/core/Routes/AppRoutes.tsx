@@ -5,6 +5,7 @@ import AdminRoutes from "./AdminRoutes";
 import SignUp from "../Users/SignUp";
 import SignIn from "../Session/SignIn";
 import ForgotPassword from "../Session/ForgotPassword";
+import AdminRoute from "./AdminRoute";
 
 
 
@@ -15,7 +16,7 @@ const AppRoutes: React.FC = () => {
       <Route path="/signup" exact component={SignUp} />
       <Route path="/signin" exact component={SignIn} />
       <Route path="/pw-forget" exact component={ForgotPassword} />
-      <Route path="/admin" component={AdminRoutes} />
+      <AdminRoute path="/admin" component={AdminRoutes} />
     </>
   );
 }

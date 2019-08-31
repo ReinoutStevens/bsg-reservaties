@@ -18,6 +18,7 @@ export interface CreateCalendarEventInput {
   description: string | null;
   rentableId?: string;
   url?: string;
+  approved: boolean;
 }
 
 export interface UpdateCalendarEventInput {

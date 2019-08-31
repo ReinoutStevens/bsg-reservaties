@@ -1,13 +1,11 @@
 import React from 'react';
 import EventsCalendar from './EventsCalendar';
 import { DateTime } from 'luxon';
-import BSGServices from '../../services/BSGServices';
 import { CalendarEvent } from '../../services/Events';
 import EventInfo from './EventInfo';
+import withServices, { WithServices } from '../../services/withServices';
 
-interface PublicCalendarProps {
-
-}
+type PublicCalendarProps = WithServices
 
 
 interface PublicCalendarState {
@@ -68,8 +66,9 @@ class PublicCalendar extends React.Component<PublicCalendarProps, PublicCalendar
   }
 
   private getEvents = (start: DateTime, end: DateTime) => {
-    return BSGServices.getInstance().getAllEvents(start, end);
+    const { services } = this.props;
+    return services.events.getAllEvents(start, end);
   }
 }
 
-export default PublicCalendar;
+export default withServices(PublicCalendar);

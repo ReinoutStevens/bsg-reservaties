@@ -1,5 +1,6 @@
 import firebase from 'firebase/app';
 import 'firebase/auth';
+import 'firebase/functions';
 
 const firebaseConfig = {
   apiKey: "AIzaSyAapSOfqtY7sbJ3K4M6ThArErrKQvqZFDE",
@@ -14,6 +15,11 @@ const firebaseConfig = {
 
 interface NewUserInput {
   email: string;
+  displayName: string;
+}
+
+interface UserData {
+  isAdmin: boolean;
 }
 
 interface CompleteSignInInput {
@@ -25,26 +31,70 @@ interface SignInInput {
   password: string;
 }
 
+type AuthChangeListener = (user: firebase.User | null) => void;
+
+firebase.initializeApp(firebaseConfig);
+
 class Firebase {
   private auth: firebase.auth.Auth;
-  private user: firebase.auth.UserCredential | null;
+  private functions: firebase.functions.Functions;
+  private user: firebase.User | null;
+  readonly db: firebase.firestore.Firestore;
+
+  private userData: UserData | null;
+
+  private onAuthChangeListeners: AuthChangeListener[];
 
   constructor() {
-    firebase.initializeApp(firebaseConfig);
     this.auth = firebase.auth();
+    this.functions = firebase.functions();
+    this.db = firebase.firestore();
     this.user = null;
+    this.onAuthChangeListeners = [];
+    this.userData = null;
+    this.auth.onAuthStateChanged(async (user) => {
+      this.user = user;
+      if (this.user) {
+        const userDoc = await this.db.collection('users').doc(this.user.uid).get();
+        if (!userDoc.exists) {
+          this.userData = null;
+        } else {
+          this.userData = userDoc.data() as UserData;
+        }
+      }
+      this.onAuthChangeListeners.forEach((cb) => cb(user));
+    })
+  }
+
+  currentUser(): firebase.User | null {
+    return this.user;
+  }
+
+  isLoggedIn(): boolean {
+    return !!this.user;
+  }
+
+  isAdmin(): boolean {
+    return !!(this.userData && this.userData.isAdmin);
+  }
+
+  addAuthChangeListener(cb: AuthChangeListener) {
+    this.onAuthChangeListeners.push(cb);
+  }
+
+  removeAuthChangeListener(cb: AuthChangeListener) {
+    this.onAuthChangeListeners = this.onAuthChangeListeners.filter((listener) => listener !== cb);
   }
 
   async createUser(input: NewUserInput) {
-    await this.auth.sendSignInLinkToEmail(input.email, {
-      url: 'http://localhost:3000/signup',
-      handleCodeInApp: true,
-    });
+    const { displayName, email } = input;
+    const createUserFn = this.functions.httpsCallable('/api/v1/createUser');
+    await createUserFn({ email: email, displayName: displayName });
   }
 
   async signIn(input: SignInInput): Promise<void> {
     const { email, password } = input;
-    this.user = await this.auth.signInWithEmailAndPassword(email, password);
+    await this.auth.signInWithEmailAndPassword(email, password);
     return;
   }
 

@@ -1,11 +1,12 @@
 import React from 'react';
 import { WithSnackbarProps, withSnackbar } from 'notistack';
-import { TextField, Button, CircularProgress, createStyles, Theme } from '@material-ui/core';
-import { WithStyles, withStyles } from '@material-ui/styles';
+import { CircularProgress } from '@material-ui/core';
 import withFirebase, { WithFirebase } from '../../core/Session/withFirebase';
 import validEmail from '../../util/validEmail';
 import PersonAddIcon from '@material-ui/icons/PersonAdd';
 import Form from '../../core/Form/Form';
+import FormField from '../../core/Form/FormField';
+import FormButton from '../../core/Form/FormButton';
 
 interface NewUserProps {
 }
@@ -13,16 +14,10 @@ interface NewUserProps {
 interface NewUserState {
   saving: boolean;
   email: string;
-
+  displayName: string;
 }
 
-const styles = (theme: Theme) => createStyles({
-  button: {
-    margin: theme.spacing(3, 0, 2),
-  }
-});
-
-type NewUserProps_ = NewUserProps & WithSnackbarProps & WithStyles<typeof styles> & WithFirebase;
+type NewUserProps_ = NewUserProps & WithSnackbarProps & WithFirebase;
 
 class NewUser extends React.Component<NewUserProps_, NewUserState> {
   constructor(props: NewUserProps_) {
@@ -30,22 +25,30 @@ class NewUser extends React.Component<NewUserProps_, NewUserState> {
     this.state = {
       saving: false,
       email: '',
+      displayName: '',
     }
   }
 
   render() {
-    const { email } = this.state;
+    const { email, displayName } = this.state;
     return (
       <Form title="Create User" icon={<PersonAddIcon />}>
-        <TextField
+        <FormField
           variant="outlined"
-          margin="normal"
+          value={displayName}
+          label="Name"
+          onChange={this.onDisplayNameChange}
+          required
+          fullWidth
+        />
+        <FormField
+          variant="outlined"
           value={email}
           onChange={this.onEmailChange}
           type="email"
           label="Email"
-          fullWidth
           required
+          fullWidth
         />
         {this.renderButton()}
       </Form>
@@ -53,40 +56,37 @@ class NewUser extends React.Component<NewUserProps_, NewUserState> {
   }
 
   private renderButton() {
-    const { classes } = this.props;
     const { saving } = this.state;
     if (saving) {
       return <CircularProgress size={24} />
     } else {
       return (
-        <Button
-          color="primary"
+        <FormButton
           onClick={this.submit}
           disabled={!this.canSubmit()}
-          variant="contained"
-          className={classes.button}
           type="submit"
+          color="primary"
           fullWidth
         >
           Create User
-        </Button>
+        </FormButton>
       );
     }
   }
 
   private canSubmit(): boolean {
-    const { email } = this.state;
-    return validEmail(email);
+    const { email, displayName } = this.state;
+    return displayName.length > 0 && validEmail(email);
   }
 
   private submit = async () => {
     this.setState({ saving: true });
     const { firebase } = this.props;
-    const { email } = this.state;
+    const { email, displayName } = this.state;
     try {
-      await firebase.createUser({ email });
+      await firebase.createUser({ email, displayName });
       this.props.enqueueSnackbar('Invitation email sent');
-      this.setState({ saving: false, email: '' });
+      this.setState({ saving: false, email: '', displayName: '' });
     } catch (e) {
       console.error(e);
       this.props.enqueueSnackbar('Failed creating account', { variant: 'error' });
@@ -97,6 +97,10 @@ class NewUser extends React.Component<NewUserProps_, NewUserState> {
   private onEmailChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
     this.setState({ email: ev.currentTarget.value });
   }
+
+  private onDisplayNameChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
+    this.setState({ displayName: ev.currentTarget.value });
+  }
 }
 
-export default withFirebase(withSnackbar(withStyles(styles)(NewUser)));
+export default withFirebase(withSnackbar(NewUser));

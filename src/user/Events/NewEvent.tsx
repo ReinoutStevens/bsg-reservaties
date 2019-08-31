@@ -1,11 +1,5 @@
 import React from 'react';
 import {
-  Dialog,
-  TextField,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
   Button,
   Checkbox,
   FormControlLabel
@@ -15,18 +9,14 @@ import { DateTime } from 'luxon';
 import {
   DateTimePicker, MaterialUiPickersDate, DatePicker,
 } from "@material-ui/pickers";
-import withCalendar, { WithCalendar } from '../../core/EventsCalendar/withCalendar';
+import Form from '../../core/Form/Form';
+import FormField from '../../core/Form/FormField';
 import withServices, { WithServices } from '../../services/withServices';
 
-export interface NewEventDialogProps {
-  open: boolean;
-  onClose: () => void;
-  start?: DateTime | null;
-  end?: DateTime | null;
-  allDay: boolean;
+export interface NewEventProps {
 }
 
-export interface NewEventDialogState {
+export interface NewEventState {
   title: string;
   description: string;
   start: DateTime | null;
@@ -36,55 +26,34 @@ export interface NewEventDialogState {
   allDay: boolean;
 }
 
-type NewEventDialogProps_ = NewEventDialogProps & WithSnackbarProps & WithCalendar & WithServices;
+type NewEventProps_ = NewEventProps & WithSnackbarProps & WithServices;
 
-class NewEventDialog extends React.Component<NewEventDialogProps_, NewEventDialogState> {
-  constructor(props: NewEventDialogProps_) {
+class NewEvent extends React.Component<NewEventProps_, NewEventState> {
+  constructor(props: NewEventProps_) {
     super(props);
     this.state = {
       title: '',
       description: '',
       url: null,
       rentableId: null,
-      start: props.start || null,
-      end: props.end || null,
-      allDay: props.allDay,
-    }
-  }
-
-  componentDidUpdate(prevProps: NewEventDialogProps) {
-    if (this.props.start !== prevProps.start || this.props.end !== prevProps.end) {
-      this.setState({
-        start: this.props.start || null,
-        end: this.props.end || null,
-      });
+      start: null,
+      end: null,
+      allDay: false,
     }
   }
 
   render() {
-    const { open, onClose } = this.props;
     return (
-      <Dialog open={open}>
-        <DialogTitle>Create Event</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Create a new event
-          </DialogContentText>
-          {this.renderTitleField()}
-          {this.renderDescriptionField()}
-          {this.renderAllDay()}
-          {this.renderStartPicker()}
-          {this.renderEndPicker()}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={onClose} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={this.save} color="primary" disabled={!this.canSave()}>
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <Form title="Create Event">
+        {this.renderTitleField()}
+        {this.renderDescriptionField()}
+        {this.renderAllDay()}
+        {this.renderStartPicker()}
+        {this.renderEndPicker()}
+        <Button onClick={this.save} color="primary" disabled={!this.canSave()}>
+          Create
+        </Button>
+      </Form>
     );
   }
 
@@ -94,31 +63,28 @@ class NewEventDialog extends React.Component<NewEventDialogProps_, NewEventDialo
   }
 
   private save = () => {
-    const { onClose, enqueueSnackbar, services } = this.props;
+    const { enqueueSnackbar, services } = this.props;
     const { title, start, end, description, allDay } = this.state;
     const evInput = {
       title: title!.trim(),
       start: allDay ? start!.startOf('day') : start!,
       end: allDay ? start!.endOf('day') : end!,
       description: description.length > 0 ? description : null,
-      approved: true,
-    };
+      approved: false,
+    }
     services.events.createEvent(evInput).then((ev) => {
-      enqueueSnackbar(`Created ${ev.title}`, { variant: 'success' });
-      this.props.onNewEvent(ev);
+      enqueueSnackbar(`Requested ${ev.title}`, { variant: 'success' });
     }).catch((e) => {
       (console).error(e);
-      enqueueSnackbar(`Failed saving ${title}`, { variant: 'error' });
+      enqueueSnackbar(`Failed requesting ${title}`, { variant: 'error' });
     })
-    onClose();
   }
 
   private renderTitleField() {
     return (
-      <TextField
+      <FormField
         onChange={this.changeTitle}
         fullWidth
-        margin="dense"
         label="Title"
       />
     );
@@ -126,11 +92,9 @@ class NewEventDialog extends React.Component<NewEventDialogProps_, NewEventDialo
 
   private renderDescriptionField() {
     return (
-      <TextField
+      <FormField
         onChange={this.changeDescription}
-        fullWidth
         multiline
-        margin="dense"
         label="Description"
       />
     );
@@ -157,6 +121,7 @@ class NewEventDialog extends React.Component<NewEventDialogProps_, NewEventDialo
           onChange={this.changeStartDate}
           fullWidth
           label="start"
+          margin="normal"
         />
       );
     } else {
@@ -167,6 +132,7 @@ class NewEventDialog extends React.Component<NewEventDialogProps_, NewEventDialo
           fullWidth
           label="Start of event"
           ampm={false}
+          margin="normal"
         />
       );
     }
@@ -186,6 +152,7 @@ class NewEventDialog extends React.Component<NewEventDialogProps_, NewEventDialo
         fullWidth
         label="End of event"
         ampm={false}
+        margin="normal"
       />
     );
   }
@@ -219,4 +186,4 @@ class NewEventDialog extends React.Component<NewEventDialogProps_, NewEventDialo
   }
 }
 
-export default withSnackbar(withCalendar(withServices(NewEventDialog)));
+export default withSnackbar(withServices(NewEvent));

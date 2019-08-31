@@ -20,7 +20,6 @@ const FormButton: React.FC<ButtonProps> = (props) => {
       {...props}
       variant="contained"
       className={classes.button}
-      fullWidth
     />
   );
 };

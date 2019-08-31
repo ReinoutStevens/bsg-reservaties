@@ -5,10 +5,10 @@ import OpenInBrowserIcon from '@material-ui/icons/OpenInBrowser';
 import DeleteIcon from '@material-ui/icons/Delete';
 import EditIcon from '@material-ui/icons/Edit';
 import { WithStyles, withStyles } from '@material-ui/styles';
-import BSGServices from '../../services/BSGServices';
 import { withSnackbar, WithSnackbarProps } from 'notistack';
 import { ExtendedCalendarEvent } from '../../core/EventsCalendar/EventsCalendar';
 import UpdateEventDialog from './UpdateEventDialog';
+import withServices, { WithServices } from '../../services/withServices';
 
 const styles = (theme: Theme) => createStyles({
   button: {
@@ -28,7 +28,7 @@ export interface AdminEventInfoState {
   showUpdateDialog: boolean;
 }
 
-type AdminEventInfoProps_ = AdminEventInfoProps & WithStyles<typeof styles> & WithSnackbarProps;
+type AdminEventInfoProps_ = AdminEventInfoProps & WithStyles<typeof styles> & WithSnackbarProps & WithServices;
 
 class AdminEventInfo extends React.Component<AdminEventInfoProps_, AdminEventInfoState> {
 
@@ -160,8 +160,8 @@ class AdminEventInfo extends React.Component<AdminEventInfoProps_, AdminEventInf
   }
 
   private deleteEvent = async () => {
-    const { event, onClose, enqueueSnackbar } = this.props;
-    BSGServices.getInstance().deleteEvent(event.id).then(() => {
+    const { event, onClose, enqueueSnackbar, services } = this.props;
+    services.events.deleteEvent(event.id).then(() => {
       event.baseEvent.remove();
       enqueueSnackbar(`Deleted ${event.title}`, { variant: 'success' });
     }).catch((e) => {
@@ -227,4 +227,4 @@ class AdminEventInfo extends React.Component<AdminEventInfoProps_, AdminEventInf
   }
 }
 
-export default withStyles(styles)(withSnackbar(AdminEventInfo));
+export default withStyles(styles)(withSnackbar(withServices(AdminEventInfo)));

@@ -1,10 +1,10 @@
 import React from 'react';
 import { Rentable } from '../../services/Rentable';
-import BSGServices from '../../services/BSGServices';
 import Spinner from '../../core/Spinner';
 import Typography from '@material-ui/core/Typography';
 import RentablesTable from './RentablesTable';
 import NewRentableFab from './NewRentableFab';
+import withServices, { WithServices } from '../../services/withServices';
 
 interface RentablesState {
   rentables: Rentable[];
@@ -12,10 +12,7 @@ interface RentablesState {
   error: string | null;
 }
 
-
-interface RentablesProps_ {
-
-}
+type RentablesProps_ = WithServices;
 
 class Rentables extends React.Component<RentablesProps_, RentablesState> {
 
@@ -29,8 +26,9 @@ class Rentables extends React.Component<RentablesProps_, RentablesState> {
   }
 
   async componentDidMount() {
+    const { services } = this.props;
     try {
-      const rentables = await BSGServices.getInstance().getRentables();
+      const rentables = await services.events.getRentables();
       this.setState({
         rentables: rentables,
         isLoading: false,
@@ -89,4 +87,4 @@ class Rentables extends React.Component<RentablesProps_, RentablesState> {
   }
 }
 
-export default Rentables;
+export default withServices(Rentables);

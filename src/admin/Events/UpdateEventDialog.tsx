@@ -9,7 +9,6 @@ import {
   Checkbox,
   FormControlLabel
 } from '@material-ui/core';
-import BSGServices from '../../services/BSGServices';
 import { withSnackbar, WithSnackbarProps } from 'notistack';
 import { DateTime } from 'luxon';
 import {
@@ -17,6 +16,7 @@ import {
 } from "@material-ui/pickers";
 import { ExtendedCalendarEvent } from '../../core/EventsCalendar/EventsCalendar';
 import withCalendar, { WithCalendar } from '../../core/EventsCalendar/withCalendar';
+import withServices, { WithServices } from '../../services/withServices';
 
 export interface UpdateEventDialogProps {
   open: boolean;
@@ -34,7 +34,7 @@ export interface UpdateEventDialogState {
   allDay: boolean;
 }
 
-type UpdateEventDialogProps_ = UpdateEventDialogProps & WithSnackbarProps & WithCalendar;
+type UpdateEventDialogProps_ = UpdateEventDialogProps & WithSnackbarProps & WithCalendar & WithServices;
 
 class UpdateEventDialog extends React.Component<UpdateEventDialogProps_, UpdateEventDialogState> {
   constructor(props: UpdateEventDialogProps_) {
@@ -96,7 +96,7 @@ class UpdateEventDialog extends React.Component<UpdateEventDialogProps_, UpdateE
   }
 
   private update = () => {
-    const { onClose, enqueueSnackbar, event } = this.props;
+    const { onClose, enqueueSnackbar, event, services } = this.props;
     const { title, start, end, description, allDay } = this.state;
     const evInput = {
       id: event.id,
@@ -106,7 +106,7 @@ class UpdateEventDialog extends React.Component<UpdateEventDialogProps_, UpdateE
       description: description.length > 0 ? description : null,
       approved: event.approved,
     }
-    BSGServices.getInstance().updateEvent(evInput).then((res) => {
+    services.events.updateEvent(evInput).then((res) => {
       enqueueSnackbar(`Updated ${title}`, { variant: 'success' });
       this.props.onUpdateEvent(event, res);
     }).catch((e) => {
@@ -226,4 +226,4 @@ class UpdateEventDialog extends React.Component<UpdateEventDialogProps_, UpdateE
   }
 }
 
-export default withSnackbar(withCalendar(UpdateEventDialog));
+export default withSnackbar(withCalendar(withServices(UpdateEventDialog)));

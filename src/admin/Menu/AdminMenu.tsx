@@ -5,14 +5,24 @@ import EventIcon from '@material-ui/icons/Event';
 import PersonAddIcon from '@material-ui/icons/PersonAdd';
 
 import { Link } from 'react-router-dom';
+import withFirebase, { WithFirebase } from '../../core/Session/withFirebase';
 
 export interface AdminMenuProps {
   onClick: () => void;
 }
 
-class AdminMenu extends React.Component<AdminMenuProps> {
+type AdminMenuProps_ = AdminMenuProps & WithFirebase;
+
+class AdminMenu extends React.Component<AdminMenuProps_> {
 
   render() {
+    const { currentUser, firebase } = this.props;
+    if (!currentUser) {
+      return null;
+    }
+    if (!firebase.isAdmin) {
+      return null;
+    }
     return (
       <List>
         {this.renderItem('Events', '/admin/events', <EventIcon />)}
@@ -34,4 +44,4 @@ class AdminMenu extends React.Component<AdminMenuProps> {
   }
 }
 
-export default AdminMenu;
+export default withFirebase(AdminMenu);
