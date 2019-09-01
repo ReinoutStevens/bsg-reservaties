@@ -10,6 +10,7 @@ import AdminMenu from '../../admin/Menu/AdminMenu';
 import { Drawer, Link, Typography } from '@material-ui/core';
 import { Link as RouterLink } from 'react-router-dom';
 import withFirebase, { WithFirebase } from '../Session/withFirebase';
+import UserMenu from '../../user/Menu/UserMenu';
 
 const styles = (theme: Theme) => createStyles({
   root: {
@@ -45,23 +46,12 @@ class TopBar extends React.Component<TopBarProps_, TopBarState> {
   }
 
   render() {
-    const { classes, currentUser } = this.props;
+    const { classes } = this.props;
     return (
       <div className={classes.root}>
         <AppBar position="static">
           <Toolbar>
-            {
-              currentUser &&
-              <IconButton
-                edge="start"
-                className={classes.menuButton}
-                color="inherit"
-                aria-label="menu"
-                onClick={this.toggleMenu}
-              >
-                <MenuIcon />
-              </IconButton>
-            }
+            {this.renderHamburger()}
             <Link
               component={RouterLink}
               to="/"
@@ -72,7 +62,7 @@ class TopBar extends React.Component<TopBarProps_, TopBarState> {
               <Typography variant="h6">BSG Reservaties</Typography>
               <Typography variant="subtitle2">In Tomat zijn jaar was alles beter</Typography>
             </Link>
-           {this.renderSignInOut()}
+            {this.renderSignInOut()}
           </Toolbar>
         </AppBar>
         {this.renderDrawer()}
@@ -80,8 +70,26 @@ class TopBar extends React.Component<TopBarProps_, TopBarState> {
     );
   }
 
+  private renderHamburger() {
+    const { currentUser, classes } = this.props;
+    if (!currentUser) {
+      return null;
+    }
+    return (
+      <IconButton
+        edge="start"
+        className={classes.menuButton}
+        color="inherit"
+        aria-label="menu"
+        onClick={this.toggleMenu}
+      >
+        <MenuIcon />
+      </IconButton>
+    );
+  }
+
   private renderSignInOut() {
-    const { currentUser} = this.props;
+    const { currentUser } = this.props;
     if (currentUser) {
       return this.renderSignOut();
     } else {
@@ -116,6 +124,7 @@ class TopBar extends React.Component<TopBarProps_, TopBarState> {
     const { menuOpen } = this.state;
     return (
       <Drawer open={menuOpen} onClose={this.toggleMenu}>
+        <UserMenu onClick={this.toggleMenu} />
         <AdminMenu onClick={this.toggleMenu} />
       </Drawer>
     );

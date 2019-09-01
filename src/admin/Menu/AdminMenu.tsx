@@ -1,5 +1,5 @@
 import React from 'react';
-import { List, ListItem, ListItemIcon, ListItemText } from '@material-ui/core';
+import { List, ListItem, ListItemIcon, ListItemText, ListSubheader } from '@material-ui/core';
 import MeetinRoomIcon from '@material-ui/icons/MeetingRoom';
 import EventIcon from '@material-ui/icons/Event';
 import PersonAddIcon from '@material-ui/icons/PersonAdd';
@@ -25,6 +25,7 @@ class AdminMenu extends React.Component<AdminMenuProps_> {
     }
     return (
       <List>
+        <ListSubheader inset>Admin</ListSubheader>
         {this.renderItem('Events', '/admin/events', <EventIcon />)}
         {this.renderItem('Rentables', '/admin/rentables', <MeetinRoomIcon />)}
         {this.renderItem('Users', '/admin/users', <PersonAddIcon />)}

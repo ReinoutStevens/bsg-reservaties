@@ -11,6 +11,8 @@ import { CalendarEvent } from '../../services/Events';
 
 import './EventsCalendar.scss';
 import EventsCalendarContext from './EventsCalendarContext';
+import { Theme, createStyles, withStyles } from '@material-ui/core';
+import { WithStyles } from '@material-ui/styles';
 
 export type ExtendedCalendarEvent = CalendarEvent & { baseEvent: EventApi };
 
@@ -20,10 +22,16 @@ export interface EventsCalenderProps {
   onEventClick?: (event: ExtendedCalendarEvent, anchor: HTMLElement) => void;
 }
 
+const styles = (theme: Theme) => createStyles({
+  calendar: {
+    marginTop: theme.spacing(4)
+  }
+});
 
 
+type EventsCalendarProps_ = EventsCalenderProps & WithStyles<typeof styles>;
 
-class EventsCalendar extends React.Component<EventsCalenderProps> {
+class EventsCalendar extends React.Component<EventsCalendarProps_> {
 
   calendarComponentRef = React.createRef<FullCalendar>()
 
@@ -36,9 +44,9 @@ class EventsCalendar extends React.Component<EventsCalenderProps> {
   }
 
   private renderCalendar() {
-    const { calendarProps } = this.props;
+    const { calendarProps, classes } = this.props;
     return (
-      <div className='calendar'>
+      <div className={classes.calendar}>
         <FullCalendar
           defaultView="dayGridMonth"
           header={{
@@ -138,4 +146,4 @@ class EventsCalendar extends React.Component<EventsCalenderProps> {
   }
 }
 
-export default EventsCalendar;
+export default withStyles(styles)(EventsCalendar);
