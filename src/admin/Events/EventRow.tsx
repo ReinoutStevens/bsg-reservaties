@@ -4,7 +4,7 @@ import { TableRow, TableCell, IconButton } from '@material-ui/core';
 import DoneIcon from '@material-ui/icons/Done';
 import DeleteIcon from '@material-ui/icons/Delete';
 import withServices, { WithServices } from '../../services/withServices';
-import { DateTime } from 'luxon';
+import formatDate from '../../util/dateFormat';
 
 export interface EventRowProps {
   event: CalendarEvent;
@@ -35,8 +35,8 @@ class EventRow extends React.Component<EventRowProps_, EventRowState> {
           {event.title}
         </TableCell>
         <TableCell>{event.rentable ? event.rentable.name : '/'}</TableCell>
-        <TableCell>{event.start.toLocaleString(DateTime.DATETIME_FULL)}</TableCell>
-        <TableCell>{event.end.toLocaleString(DateTime.DATETIME_FULL)}</TableCell>
+        <TableCell>{formatDate(event.start)}</TableCell>
+        <TableCell>{formatDate(event.end)}</TableCell>
         <TableCell align="right">{this.renderActions()}</TableCell>
       </TableRow>
     );

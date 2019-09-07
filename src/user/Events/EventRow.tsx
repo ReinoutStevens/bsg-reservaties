@@ -3,6 +3,7 @@ import { CalendarEvent } from '../../services/Events';
 import { TableRow, TableCell, IconButton } from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
 import withServices, { WithServices } from '../../services/withServices';
+import formatDate from '../../util/dateFormat';
 
 export interface EventRowProps {
   event: CalendarEvent;
@@ -32,8 +33,8 @@ class EventRow extends React.Component<EventRowProps_, EventRowState> {
           {event.title}
         </TableCell>
         <TableCell>{event.rentable ? event.rentable.name : '/'}</TableCell>
-        <TableCell>{event.start.toFormat('dd/LL/yyyy HH:mm:ss')}</TableCell>
-        <TableCell>{event.end.toFormat('dd/LL/yyyy HH:mm:ss')}</TableCell>
+        <TableCell>{formatDate(event.start)}</TableCell>
+        <TableCell>{formatDate(event.end)}</TableCell>
         <TableCell>{event.approved ? 'Approved' : 'Awaiting Approval'}</TableCell>
         <TableCell align="right">{this.renderActions()}</TableCell>
       </TableRow>
