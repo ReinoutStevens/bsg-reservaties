@@ -8,7 +8,6 @@ import { DateTime } from 'luxon';
 import { EventSourceFunc } from '@fullcalendar/core/event-sources/func-event-source';
 import { OptionsInput, EventApi } from '@fullcalendar/core';
 import { CalendarEvent } from '../../services/Events';
-
 import './EventsCalendar.scss';
 import EventsCalendarContext from './EventsCalendarContext';
 import { Theme, createStyles, withStyles } from '@material-ui/core';
@@ -64,6 +63,7 @@ class EventsCalendar extends React.Component<EventsCalendarProps_> {
             meridiem: false,
             hour12: false,
           }}
+          contentHeight="auto"
           {...calendarProps}
         />
         <EventsCalendarContext.Provider value={{

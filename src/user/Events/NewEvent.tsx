@@ -2,7 +2,13 @@ import React from 'react';
 import {
   Button,
   Checkbox,
-  FormControlLabel
+  FormControlLabel,
+  FormGroup,
+  NativeSelect,
+  Input,
+  FormControl,
+  InputLabel,
+  Grid,
 } from '@material-ui/core';
 import { withSnackbar, WithSnackbarProps } from 'notistack';
 import { DateTime } from 'luxon';
@@ -13,6 +19,8 @@ import Form from '../../core/Form/Form';
 import FormField from '../../core/Form/FormField';
 import withServices, { WithServices } from '../../services/withServices';
 import withFirebase, { WithFirebase } from '../../core/Session/withFirebase';
+import { withRouter, RouteComponentProps } from 'react-router';
+import { Rentable } from '../../services/Rentable';
 
 export interface NewEventProps {
 }
@@ -25,9 +33,11 @@ export interface NewEventState {
   url: string | null;
   rentableId: string | null;
   allDay: boolean;
+  loading: boolean;
+  rentables: Rentable[];
 }
 
-type NewEventProps_ = NewEventProps & WithSnackbarProps & WithServices & WithFirebase;
+type NewEventProps_ = NewEventProps & WithSnackbarProps & WithServices & WithFirebase & RouteComponentProps;
 
 class NewEvent extends React.Component<NewEventProps_, NewEventState> {
   constructor(props: NewEventProps_) {
@@ -40,7 +50,15 @@ class NewEvent extends React.Component<NewEventProps_, NewEventState> {
       start: null,
       end: null,
       allDay: false,
+      loading: true,
+      rentables: [],
     }
+  }
+
+  async componentDidMount() {
+    const { services } = this.props;
+    const rentables = await services.events.getRentables();
+    this.setState({ loading: false, rentables: rentables });
   }
 
   render() {
@@ -48,9 +66,16 @@ class NewEvent extends React.Component<NewEventProps_, NewEventState> {
       <Form title="Create Event">
         {this.renderTitleField()}
         {this.renderDescriptionField()}
+        {this.renderLocationField()}
         {this.renderAllDay()}
-        {this.renderStartPicker()}
-        {this.renderEndPicker()}
+        <Grid container spacing={2}>
+          <Grid item xs={12} sm={6}>
+            {this.renderStartPicker()}
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            {this.renderEndPicker()}
+          </Grid>
+        </Grid>
         <Button onClick={this.save} color="primary" disabled={!this.canSave()}>
           Create
         </Button>
@@ -64,8 +89,8 @@ class NewEvent extends React.Component<NewEventProps_, NewEventState> {
   }
 
   private save = () => {
-    const { enqueueSnackbar, services, currentUser } = this.props;
-    const { title, start, end, description, allDay } = this.state;
+    const { enqueueSnackbar, services, currentUser, history } = this.props;
+    const { title, start, end, description, allDay, rentableId } = this.state;
     const evInput = {
       title: title!.trim(),
       start: allDay ? start!.startOf('day') : start!,
@@ -73,13 +98,15 @@ class NewEvent extends React.Component<NewEventProps_, NewEventState> {
       description: description.length > 0 ? description : null,
       approved: false,
       userId: currentUser!.uid,
+      rentableId: rentableId || undefined,
     }
     services.events.createEvent(evInput).then((ev) => {
       enqueueSnackbar(`Requested ${ev.title}`, { variant: 'success' });
     }).catch((e) => {
       (console).error(e);
       enqueueSnackbar(`Failed requesting ${title}`, { variant: 'error' });
-    })
+    });
+    history.push('/user/events');
   }
 
   private renderTitleField() {
@@ -97,20 +124,56 @@ class NewEvent extends React.Component<NewEventProps_, NewEventState> {
       <FormField
         onChange={this.changeDescription}
         multiline
+        fullWidth
         label="Description"
       />
     );
   }
 
+  private renderLocationField() {
+    const { rentables, rentableId } = this.state;
+    return (
+      <FormControl fullWidth>
+        <InputLabel htmlFor="location-select">Location</InputLabel>
+        <NativeSelect
+          value={rentableId || ''}
+          onChange={this.selectRentable}
+          inputProps={{
+            name: 'Location',
+            id: 'location-select',
+          }}
+          fullWidth
+          variant="outlined"
+          input={<Input name="Location" id="age-native-helper" />}
+        >
+          <option value="" />
+          {rentables.map((rentable) => {
+            return (
+              <option key={rentable.id} value={rentable.id}>{rentable.name}</option>
+            );
+          })}
+        </NativeSelect>
+      </FormControl>
+
+    );
+  }
+
+  private selectRentable = (ev: React.ChangeEvent<HTMLSelectElement>) => {
+    this.setState({ rentableId: ev.currentTarget.value });
+  }
+
   private renderAllDay() {
     const { allDay } = this.state;
     return (
-      <FormControlLabel
-        control={
-          <Checkbox checked={allDay} onChange={this.changeAllDay} value="checkedA" />
-        }
-        label="All day"
-      />
+      <FormGroup>
+        <FormControlLabel
+          control={
+            <Checkbox checked={allDay} onChange={this.changeAllDay} value="checkedA" />
+          }
+          label="All day"
+        />
+
+      </FormGroup>
     );
   }
 
@@ -121,9 +184,9 @@ class NewEvent extends React.Component<NewEventProps_, NewEventState> {
         <DatePicker
           value={start}
           onChange={this.changeStartDate}
-          fullWidth
-          label="start"
+          label="Start of Event"
           margin="normal"
+          fullWidth
         />
       );
     } else {
@@ -131,10 +194,10 @@ class NewEvent extends React.Component<NewEventProps_, NewEventState> {
         <DateTimePicker
           value={start}
           onChange={this.changeStartDate}
-          fullWidth
-          label="Start of event"
+          label="Start of Event"
           ampm={false}
           margin="normal"
+          fullWidth
         />
       );
     }
@@ -151,10 +214,10 @@ class NewEvent extends React.Component<NewEventProps_, NewEventState> {
         value={end}
         onChange={this.changeEndDate}
         minDate={minDate}
-        fullWidth
         label="End of event"
         ampm={false}
         margin="normal"
+        fullWidth
       />
     );
   }
@@ -165,7 +228,7 @@ class NewEvent extends React.Component<NewEventProps_, NewEventState> {
 
   private changeStartDate = (date: MaterialUiPickersDate) => {
     const { end, allDay } = this.state;
-    if (!end && !allDay) {
+    if (!end && !allDay && date) {
       this.setState({
         start: date,
         end: (date as DateTime).endOf('day'),
@@ -188,4 +251,4 @@ class NewEvent extends React.Component<NewEventProps_, NewEventState> {
   }
 }
 
-export default withSnackbar(withFirebase(withServices(NewEvent)));
+export default withSnackbar(withFirebase(withRouter(withServices(NewEvent))));

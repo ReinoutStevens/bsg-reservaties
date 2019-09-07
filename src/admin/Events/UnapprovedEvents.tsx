@@ -1,18 +1,15 @@
 import React from 'react';
 import { CalendarEvent } from '../../services/Events';
 import withServices, { WithServices } from '../../services/withServices';
-import { createStyles, Theme, withStyles, Table, TableHead, TableRow, TableCell, TableBody, Container, Typography } from '@material-ui/core';
+import { createStyles, Theme, withStyles, Paper, Table, TableHead, TableRow, TableCell, TableBody } from '@material-ui/core';
 import { WithStyles } from '@material-ui/styles';
 import Spinner from '../../core/Spinner';
 import EventRow from './EventRow';
-import withFirebase, { WithFirebase } from '../../core/Session/withFirebase';
-import { DateTime } from 'luxon';
-import NewEventFab from './NewEventFab';
 
-export interface EventsProps {
+export interface UnapprovedEventsProps {
 }
 
-export interface EventsState {
+export interface UnapprovedEventsState {
   events: CalendarEvent[];
   loading: boolean;
 }
@@ -23,19 +20,13 @@ const styles = (theme: Theme) => createStyles({
     marginTop: theme.spacing(3),
     overflowX: 'auto',
   },
-  paper: {
-    marginTop: theme.spacing(2),
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-  },
 });
 
 
-type EventsProps_ = EventsProps & WithServices & WithStyles<typeof styles> & WithFirebase;
+type UnapprovedEventsProps_ = UnapprovedEventsProps & WithServices & WithStyles<typeof styles>;
 
-class Events extends React.Component<EventsProps_, EventsState> {
-  constructor(props: EventsProps_) {
+class UnapprovedEvents extends React.Component<UnapprovedEventsProps_, UnapprovedEventsState> {
+  constructor(props: UnapprovedEventsProps_) {
     super(props);
     this.state = {
       events: [],
@@ -48,30 +39,13 @@ class Events extends React.Component<EventsProps_, EventsState> {
   }
 
   render() {
-    const { classes } = this.props
-    return (
-      <>
-      <Container>
-        <div className={classes.paper}>
-          <Typography component="h1" variant="h5">
-            My Upcoming Events
-          </Typography>
-          {this.renderEvents()}
-        </div>
-      </Container>
-      <NewEventFab />
-      </>
-    )
-  }
-
-  private renderEvents() {
-    const { classes } = this.props;
     const { loading, events } = this.state;
     if (loading) {
       return <Spinner />
     }
+    const { classes } = this.props;
     return (
-      <div className={classes.root}>
+      <Paper className={classes.root}>
         <Table>
           <TableHead>
             <TableRow>
@@ -79,7 +53,6 @@ class Events extends React.Component<EventsProps_, EventsState> {
               <TableCell>Location</TableCell>
               <TableCell>Start</TableCell>
               <TableCell>End</TableCell>
-              <TableCell>Status</TableCell>
               <TableCell align="right">Actions</TableCell>
             </TableRow>
           </TableHead>
@@ -88,20 +61,20 @@ class Events extends React.Component<EventsProps_, EventsState> {
               <EventRow
                 key={event.id}
                 event={event}
+                onApprove={this.removeEvent}
                 onDelete={this.removeEvent}
               />
             ))}
           </TableBody>
         </Table>
-      </div>
+      </Paper>
     )
-
   }
 
   private async loadEvents() {
-    const { services, currentUser } = this.props;
-    const yesterday = DateTime.local().plus({ day: -1 }).startOf('day');
-    const events = await services.events.getUserEvents(currentUser!.uid, yesterday);
+    const { services } = this.props;
+    const events = await services.events.getUnapprovedEvents();
+    (console).log(events);
     this.setState({ events: events, loading: false });
   }
 
@@ -111,4 +84,4 @@ class Events extends React.Component<EventsProps_, EventsState> {
   }
 }
 
-export default withStyles(styles)(withFirebase(withServices(Events)));
+export default withStyles(styles)(withServices(UnapprovedEvents));

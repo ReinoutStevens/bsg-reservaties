@@ -52,7 +52,6 @@ class EventServices {
   async getUnapprovedEvents(): Promise<CalendarEvent[]> {
     const snapshotPromise = await this.db.collection('events')
       .where('approved', '==', false)
-      .orderBy('start')
       .get();
     const rentablesPromise = this.getRentables();
     const [snapshot, rentables] = await Promise.all([snapshotPromise, rentablesPromise]);
@@ -61,8 +60,9 @@ class EventServices {
       const eventData = doc.data();
       const event = this.mapEvent(doc, eventData, rentables);
       events.push(event);
-    })
-    return events;
+    });
+    const sorted = events.sort((a, b) => a.start.valueOf() - b.start.valueOf());
+    return sorted;
   }
 
   async getAllEvents(start: DateTime, end: DateTime): Promise<CalendarEvent[]> {
@@ -85,6 +85,23 @@ class EventServices {
       events.push(event);
     }
     return events;
+  }
+
+  async getUserEvents(uid: string, start: DateTime): Promise<CalendarEvent[]> {
+    const snapshotPromise = await this.db.collection('events')
+      .where('userId', '==', uid)
+      .where('start', '>=', start.toJSDate())
+      .get();
+    const rentablesPromise = this.getRentables();
+    const [snapshot, rentables] = await Promise.all([snapshotPromise, rentablesPromise]);
+    let events: CalendarEvent[] = [];
+    snapshot.forEach((doc) => {
+      const eventData = doc.data();
+      const event = this.mapEvent(doc, eventData, rentables);
+      events.push(event);
+    });
+    const sorted = events.sort((a, b) => a.start.valueOf() - b.start.valueOf());
+    return sorted;
   }
 
   async createEvent(input: CreateCalendarEventInput): Promise<CalendarEvent> {

@@ -198,7 +198,7 @@ class NewEventDialog extends React.Component<NewEventDialogProps_, NewEventDialo
 
   private changeStartDate = (date: MaterialUiPickersDate) => {
     const { end, allDay } = this.state;
-    if (!end && !allDay) {
+    if (!end && !allDay && date) {
       this.setState({
         start: date,
         end: (date as DateTime).endOf('day'),

@@ -31,7 +31,7 @@ type FormProps_ = FormProps & WithStyles<typeof styles>;
 
 const Form: React.FC<FormProps_> = ({ title, icon, children, classes }) => {
   return (
-    <Container maxWidth="xs">
+    <Container maxWidth="sm">
       <div className={classes.paper}>
         {
           icon &&
