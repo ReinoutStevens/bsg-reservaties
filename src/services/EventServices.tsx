@@ -2,7 +2,7 @@ import { DateTime } from 'luxon';
 import firebase, { firestore } from 'firebase/app';
 import 'firebase/firestore';
 import 'firebase/auth';
-import { CalendarEvent, CreateCalendarEventInput, UpdateCalendarEventInput } from './Events';
+import { CalendarEvent, CreateCalendarEventInput, UpdateCalendarEventInput, ApproveCalendarEventInput } from './Events';
 import Firebase from '../core/Session/Firebase';
 
 interface Rentable {
@@ -46,6 +46,22 @@ class EventServices {
 
       events.push(event);
     }
+    return events;
+  }
+
+  async getUnapprovedEvents(): Promise<CalendarEvent[]> {
+    const snapshotPromise = await this.db.collection('events')
+      .where('approved', '==', false)
+      .orderBy('start')
+      .get();
+    const rentablesPromise = this.getRentables();
+    const [snapshot, rentables] = await Promise.all([snapshotPromise, rentablesPromise]);
+    let events: CalendarEvent[] = [];
+    snapshot.forEach((doc) => {
+      const eventData = doc.data();
+      const event = this.mapEvent(doc, eventData, rentables);
+      events.push(event);
+    })
     return events;
   }
 
@@ -99,6 +115,14 @@ class EventServices {
     return input;
   }
 
+  async approveEvent(input: ApproveCalendarEventInput): Promise<void> {
+    const ev = {
+      approved: true,
+    }
+    const ref = this.db.collection('events').doc(input.id);
+    await ref.update(ev);
+  }
+
   deleteEvent(eventId: string): Promise<void> {
     return this.db.collection('events').doc(eventId).delete();
   }
@@ -128,7 +152,7 @@ class EventServices {
     return {
       ...rentable,
       id: ref.id,
-    }
+    };
   }
 
   private mapEvent(
@@ -145,6 +169,7 @@ class EventServices {
       approved: data.approved,
       rentable: data.rentableId ? rentables.find((r) => r.id === data.rentableId) : undefined,
       url: data.url,
+      userId: data.userId,
     }
   }
 }

@@ -17,6 +17,7 @@ import {
 } from "@material-ui/pickers";
 import withCalendar, { WithCalendar } from '../../core/EventsCalendar/withCalendar';
 import withServices, { WithServices } from '../../services/withServices';
+import withFirebase, { WithFirebase } from '../../core/Session/withFirebase';
 
 export interface NewEventDialogProps {
   open: boolean;
@@ -36,7 +37,7 @@ export interface NewEventDialogState {
   allDay: boolean;
 }
 
-type NewEventDialogProps_ = NewEventDialogProps & WithSnackbarProps & WithCalendar & WithServices;
+type NewEventDialogProps_ = NewEventDialogProps & WithSnackbarProps & WithCalendar & WithServices & WithFirebase;
 
 class NewEventDialog extends React.Component<NewEventDialogProps_, NewEventDialogState> {
   constructor(props: NewEventDialogProps_) {
@@ -94,7 +95,7 @@ class NewEventDialog extends React.Component<NewEventDialogProps_, NewEventDialo
   }
 
   private save = () => {
-    const { onClose, enqueueSnackbar, services } = this.props;
+    const { onClose, enqueueSnackbar, services, currentUser } = this.props;
     const { title, start, end, description, allDay } = this.state;
     const evInput = {
       title: title!.trim(),
@@ -102,6 +103,7 @@ class NewEventDialog extends React.Component<NewEventDialogProps_, NewEventDialo
       end: allDay ? start!.endOf('day') : end!,
       description: description.length > 0 ? description : null,
       approved: true,
+      userId: currentUser!.uid,
     };
     services.events.createEvent(evInput).then((ev) => {
       enqueueSnackbar(`Created ${ev.title}`, { variant: 'success' });
@@ -219,4 +221,4 @@ class NewEventDialog extends React.Component<NewEventDialogProps_, NewEventDialo
   }
 }
 
-export default withSnackbar(withCalendar(withServices(NewEventDialog)));
+export default withSnackbar(withCalendar(withFirebase(withServices(NewEventDialog))));

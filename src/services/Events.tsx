@@ -9,6 +9,7 @@ export interface CalendarEvent {
   approved: boolean;
   rentable?: Rentable;
   url?: string;
+  userId: string;
 }
 
 export interface CreateCalendarEventInput {
@@ -19,6 +20,7 @@ export interface CreateCalendarEventInput {
   rentableId?: string;
   url?: string;
   approved: boolean;
+  userId: string;
 }
 
 export interface UpdateCalendarEventInput {
@@ -30,4 +32,9 @@ export interface UpdateCalendarEventInput {
   rentableId?: string;
   url?: string;
   approved: boolean;
+  userId: string;
+}
+
+export interface ApproveCalendarEventInput {
+  id: string;
 }

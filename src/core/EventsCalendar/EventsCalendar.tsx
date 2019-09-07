@@ -140,6 +140,7 @@ class EventsCalendar extends React.Component<EventsCalendarProps_> {
       id: event.id,
       rentable: event.extendedProps.rentable,
       approved: event.extendedProps.approved,
+      userId: event.extendedProps.userId,
       baseEvent: event,
     }
     onEventClick(ev, el);

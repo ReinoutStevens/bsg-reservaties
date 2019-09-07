@@ -105,6 +105,7 @@ class UpdateEventDialog extends React.Component<UpdateEventDialogProps_, UpdateE
       end: allDay ? start!.endOf('day') : end!,
       description: description.length > 0 ? description : null,
       approved: event.approved,
+      userId: event.userId,
     }
     services.events.updateEvent(evInput).then((res) => {
       enqueueSnackbar(`Updated ${title}`, { variant: 'success' });

@@ -12,6 +12,7 @@ import {
 import Form from '../../core/Form/Form';
 import FormField from '../../core/Form/FormField';
 import withServices, { WithServices } from '../../services/withServices';
+import withFirebase, { WithFirebase } from '../../core/Session/withFirebase';
 
 export interface NewEventProps {
 }
@@ -26,7 +27,7 @@ export interface NewEventState {
   allDay: boolean;
 }
 
-type NewEventProps_ = NewEventProps & WithSnackbarProps & WithServices;
+type NewEventProps_ = NewEventProps & WithSnackbarProps & WithServices & WithFirebase;
 
 class NewEvent extends React.Component<NewEventProps_, NewEventState> {
   constructor(props: NewEventProps_) {
@@ -63,7 +64,7 @@ class NewEvent extends React.Component<NewEventProps_, NewEventState> {
   }
 
   private save = () => {
-    const { enqueueSnackbar, services } = this.props;
+    const { enqueueSnackbar, services, currentUser } = this.props;
     const { title, start, end, description, allDay } = this.state;
     const evInput = {
       title: title!.trim(),
@@ -71,6 +72,7 @@ class NewEvent extends React.Component<NewEventProps_, NewEventState> {
       end: allDay ? start!.endOf('day') : end!,
       description: description.length > 0 ? description : null,
       approved: false,
+      userId: currentUser!.uid,
     }
     services.events.createEvent(evInput).then((ev) => {
       enqueueSnackbar(`Requested ${ev.title}`, { variant: 'success' });
@@ -186,4 +188,4 @@ class NewEvent extends React.Component<NewEventProps_, NewEventState> {
   }
 }
 
-export default withSnackbar(withServices(NewEvent));
+export default withSnackbar(withFirebase(withServices(NewEvent)));
