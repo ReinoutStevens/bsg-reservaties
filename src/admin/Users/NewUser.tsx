@@ -85,7 +85,7 @@ class NewUser extends React.Component<NewUserProps_, NewUserState> {
     const { email, displayName } = this.state;
     try {
       await firebase.createUser({ email, displayName });
-      this.props.enqueueSnackbar('Invitation email sent');
+      this.props.enqueueSnackbar('User created');
       this.setState({ saving: false, email: '', displayName: '' });
     } catch (e) {
       console.error(e);

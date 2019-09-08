@@ -7,7 +7,6 @@ import * as cors from 'cors';
 
 admin.initializeApp();
 const app = express();
-const main = express();
 
 export interface AuthRequest extends express.Request {
   user: admin.auth.DecodedIdToken;
@@ -62,30 +61,27 @@ app.use(cookieParser());
 app.use(validateFirebaseIdToken);
 
 
-function ensureUserIsAuthorized(id: admin.auth.DecodedIdToken): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const userData = admin.database().ref(`/users/${id}`);
-    userData.on('value', (snapshot) => {
-      if (!snapshot) {
-        reject();
-        return;
-      }
-      if (snapshot.val().admin) {
-        resolve();
-      } else {
-        reject();
-      }
-    })
-  })
+async function ensureUserIsAuthorized(id: admin.auth.DecodedIdToken): Promise<void> {
+  const userDoc = admin.firestore().collection(`users`).doc(id.uid);
+  const userSnapshot = await userDoc.get();
+  if (!userSnapshot.exists) {
+    throw new Error('No user data found');
+  }
+  const user = userSnapshot.data();
+  if (!user || !user.isAdmin) {
+    throw new Error('Unauthorized');
+  };
 }
 
-app.get('/createUser', async (req, res) => {
+app.post('/createUser', async (req, res) => {
   const user = (req as AuthRequest).user;
   try {
     await ensureUserIsAuthorized(user);
-    const data = req.body;
+    const { data } = req.body;
     const { email, displayName } = data as { email: string, displayName: string };
-
+    if (!email || !displayName) {
+      throw new Error('missing data');
+    }
     await admin.auth().createUser({
       email: email,
       password: generator.generate({
@@ -94,13 +90,13 @@ app.get('/createUser', async (req, res) => {
       }),
       displayName: displayName,
       disabled: false,
-    })
-    res.status(200).json('ok');
+    });
+    res.status(200).json({ data: 'ok' });
   } catch (e) {
+    (console).error(e);
     res.status(500).end();
   }
 });
 
-main.use('/api/v1', app);
 
-export const webApi = functions.https.onRequest(main);
+export const webApi = functions.https.onRequest(app);

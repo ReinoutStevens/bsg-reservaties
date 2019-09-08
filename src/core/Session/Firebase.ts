@@ -88,7 +88,7 @@ class Firebase {
 
   async createUser(input: NewUserInput) {
     const { displayName, email } = input;
-    const createUserFn = this.functions.httpsCallable('api/v1/createUser');
+    const createUserFn = this.functions.httpsCallable('webApi/createUser');
     await createUserFn({ email: email, displayName: displayName });
   }
 
