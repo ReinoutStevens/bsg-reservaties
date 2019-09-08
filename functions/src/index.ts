@@ -6,7 +6,6 @@ import * as cookieParser from 'cookie-parser';
 import * as cors from 'cors';
 
 admin.initializeApp();
-// const cors = require('cors')({ origin: true });
 const app = express();
 const main = express();
 
