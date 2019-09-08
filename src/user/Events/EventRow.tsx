@@ -58,7 +58,7 @@ class EventRow extends React.Component<EventRowProps_, EventRowState> {
   private delete = async () => {
     this.setState({ processing: true });
     const { services, event, onDelete } = this.props;
-    await services.events.deleteEvent(event.id);
+    await services.events.deleteEvent(event.id, event.approved);
     if (onDelete) {
       onDelete(event);
     }

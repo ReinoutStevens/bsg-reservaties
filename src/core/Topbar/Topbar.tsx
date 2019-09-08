@@ -59,7 +59,7 @@ class TopBar extends React.Component<TopBarProps_, TopBarState> {
               className={classes.title}
               underline={'none'}
             >
-              <Typography variant="h6">BSG Reservaties</Typography>
+              <Typography variant="h6">BSG Calendar</Typography>
               <Typography variant="subtitle2">In Tomat zijn jaar was alles beter</Typography>
             </Link>
             {this.renderSignInOut()}

@@ -20,16 +20,16 @@ interface NewRentableInput {
 class EventServices {
 
   private db: firebase.firestore.Firestore;
-
+  private rentables: Rentable[] | null;
 
   constructor(firebase: Firebase) {
     this.db = firebase.db;
+    this.rentables = [];
   }
 
   async getApprovedEvents(start: DateTime, end: DateTime): Promise<CalendarEvent[]> {
     const snapshotPromise = await this.db.collection('events')
       .where('start', '>=', start.toJSDate())
-      .where('approved', '==', true)
       .orderBy('start')
       .orderBy('end', 'asc')
       .get();
@@ -50,8 +50,7 @@ class EventServices {
   }
 
   async getUnapprovedEvents(): Promise<CalendarEvent[]> {
-    const snapshotPromise = await this.db.collection('events')
-      .where('approved', '==', false)
+    const snapshotPromise = await this.db.collection('unapproved_events')
       .get();
     const rentablesPromise = this.getRentables();
     const [snapshot, rentables] = await Promise.all([snapshotPromise, rentablesPromise]);
@@ -66,6 +65,36 @@ class EventServices {
   }
 
   async getAllEvents(start: DateTime, end: DateTime): Promise<CalendarEvent[]> {
+    const [approved, unapproved] = await Promise.all([
+      this.getAllApprovedEvents(start, end),
+      this.getAllUnapprovedEvents(start, end),
+    ]);
+    return approved.concat(unapproved);
+  }
+
+  async getAllUnapprovedEvents(start: DateTime, end: DateTime): Promise<CalendarEvent[]> {
+    const snapshotPromise = this.db.collection('unapproved_events')
+      .where('start', '>=', start.toJSDate())
+      .orderBy('start')
+      .orderBy('end', 'asc')
+      .get();
+    const rentablesPromise = this.getRentables();
+    const [snapshot, rentables] = await Promise.all([snapshotPromise, rentablesPromise]);
+    let events: CalendarEvent[] = [];
+    for (const doc in snapshot.docs) {
+      const res = snapshot.docs[doc];
+      const data = res.data();
+      if (end < data.end) {
+        break;
+      }
+      const event = this.mapEvent(res, data, rentables);
+
+      events.push(event);
+    }
+    return events;
+  }
+
+  async getAllApprovedEvents(start: DateTime, end: DateTime): Promise<CalendarEvent[]> {
     const snapshotPromise = this.db.collection('events')
       .where('start', '>=', start.toJSDate())
       .orderBy('start')
@@ -88,7 +117,32 @@ class EventServices {
   }
 
   async getUserEvents(uid: string, start: DateTime): Promise<CalendarEvent[]> {
+    const [approved, unapproved] = await Promise.all([
+      this.getUserApprovedEvents(uid, start),
+      this.getUserUnapprovedEvents(uid, start),
+    ]);
+    return approved.concat(unapproved);
+  }
+
+  async getUserApprovedEvents(uid: string, start: DateTime): Promise<CalendarEvent[]> {
     const snapshotPromise = await this.db.collection('events')
+      .where('userId', '==', uid)
+      .where('start', '>=', start.toJSDate())
+      .get();
+    const rentablesPromise = this.getRentables();
+    const [snapshot, rentables] = await Promise.all([snapshotPromise, rentablesPromise]);
+    let events: CalendarEvent[] = [];
+    snapshot.forEach((doc) => {
+      const eventData = doc.data();
+      const event = this.mapEvent(doc, eventData, rentables);
+      events.push(event);
+    });
+    const sorted = events.sort((a, b) => a.start.valueOf() - b.start.valueOf());
+    return sorted;
+  }
+
+  async getUserUnapprovedEvents(uid: string, start: DateTime): Promise<CalendarEvent[]> {
+    const snapshotPromise = await this.db.collection('unapproved_events')
       .where('userId', '==', uid)
       .where('start', '>=', start.toJSDate())
       .get();
@@ -110,6 +164,21 @@ class EventServices {
       start: input.start.toJSDate(),
       end: input.end.toJSDate(),
       approved: false,
+    }
+    const ref = await this.db.collection('unapproved_events').add(ev);
+    return {
+      ...input,
+      approved: false,
+      id: ref.id,
+    };
+  }
+
+  async createApprovedEvent(input: CreateCalendarEventInput): Promise<CalendarEvent> {
+    const ev = {
+      ...input,
+      start: input.start.toJSDate(),
+      end: input.end.toJSDate(),
+      approved: true,
     }
     const ref = await this.db.collection('events').add(ev);
     return {
@@ -133,18 +202,30 @@ class EventServices {
   }
 
   async approveEvent(input: ApproveCalendarEventInput): Promise<void> {
-    const ev = {
+    const ref = this.db.collection('unapproved_events').doc(input.id);
+    const eventSnapshot = await ref.get();
+    if (!eventSnapshot.exists) {
+      throw new Error('Event does not exist');
+    }
+    const eventData = eventSnapshot.data();
+    const newEvent = {
+      ...eventData,
+      id: eventSnapshot.id,
       approved: true,
     }
-    const ref = this.db.collection('events').doc(input.id);
-    await ref.update(ev);
+    await this.db.collection('events').add(newEvent);
+    await ref.delete();
   }
 
-  deleteEvent(eventId: string): Promise<void> {
-    return this.db.collection('events').doc(eventId).delete();
+  deleteEvent(eventId: string, approved: boolean): Promise<void> {
+    const collection = approved ? 'events' : 'unapproved_events';
+    return this.db.collection(collection).doc(eventId).delete();
   }
 
   async getRentables(): Promise<Rentable[]> {
+    if (this.rentables) {
+      return this.rentables;
+    }
     const snapshot = await this.db.collection('rentables')
       .where('archived', '==', false)
       .get();
@@ -158,6 +239,7 @@ class EventServices {
       };
       rentables.push(rentable);
     });
+    this.rentables = rentables;
     return rentables;
   }
 
@@ -166,10 +248,14 @@ class EventServices {
       ...rentable,
       archived: false,
     });
-    return {
+    const newRentable = {
       ...rentable,
       id: ref.id,
     };
+    if (this.rentables) {
+      this.rentables = [...this.rentables, newRentable];
+    }
+    return newRentable;
   }
 
   private mapEvent(

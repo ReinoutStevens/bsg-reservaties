@@ -67,7 +67,7 @@ class PublicCalendar extends React.Component<PublicCalendarProps, PublicCalendar
 
   private getEvents = (start: DateTime, end: DateTime) => {
     const { services } = this.props;
-    return services.events.getAllEvents(start, end);
+    return services.events.getAllApprovedEvents(start, end);
   }
 }
 
