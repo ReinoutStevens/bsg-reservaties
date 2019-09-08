@@ -74,7 +74,6 @@ class UnapprovedEvents extends React.Component<UnapprovedEventsProps_, Unapprove
   private async loadEvents() {
     const { services } = this.props;
     const events = await services.events.getUnapprovedEvents();
-    (console).log(events);
     this.setState({ events: events, loading: false });
   }
 

@@ -12,6 +12,12 @@ import { MuiPickersUtilsProvider } from '@material-ui/pickers';
 import LuxonUtils from '@date-io/luxon';
 import FirebaseContextProvider from './Session/FirebaseContextProvider';
 import ServicesContextProvider from '../services/ServicesContextProvider';
+import { library } from '@fortawesome/fontawesome-svg-core';
+import { faGithub } from '@fortawesome/free-brands-svg-icons';
+import Footer from './Footer/Footer';
+
+library.add(faGithub);
+
 
 const theme = createMuiTheme();
 
@@ -32,6 +38,7 @@ const App: React.FC = () => {
                 <Container component="main">
                   <AppRoutes />
                 </Container>
+                <Footer />
               </SnackbarProvider>
             </MuiPickersUtilsProvider>
           </ThemeProvider>
