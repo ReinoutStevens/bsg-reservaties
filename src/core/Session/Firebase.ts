@@ -52,6 +52,7 @@ class Firebase {
     this.user = null;
     this.onAuthChangeListeners = [];
     this.userData = null;
+    this.user = this.auth.currentUser;
     this.auth.onAuthStateChanged(async (user) => {
       this.user = user;
       if (this.user) {

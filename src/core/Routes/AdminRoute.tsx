@@ -20,11 +20,11 @@ class AdminRoute extends React.Component<AdminRouteProps> {
         render={(route) => {
           if (!currentUser) {
             console.log('[AdminRoute] redirecting to /login');
-            return <Redirect to="/signin" />;
+            return <Redirect to={{ pathname: "/signin", state: { from: route.location } }} />;
           }
           if (!firebase.isAdmin()) {
             console.log('[AdminRoute] redirecting to /login');
-            return <Redirect to="/signin" />;
+            return <Redirect to={{ pathname: "/signin", state: { from: route.location } }} />;
           }
           if (Component) {
             return <Component {...route} />;
