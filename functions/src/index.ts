@@ -91,7 +91,7 @@ app.post('/createUser', async (req, res) => {
       displayName: displayName,
       disabled: false,
     });
-    await admin.firestore().collection('users').doc(user.uid).set({
+    await admin.firestore().collection('users').doc(createdUser.uid).set({
       isAdmin: false,
       displayName: createdUser.displayName,
       email: createdUser.email,
