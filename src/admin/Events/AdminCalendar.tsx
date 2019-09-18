@@ -80,8 +80,9 @@ class AdminCalendar extends React.Component<WithServices, EventsState> {
     allDay: boolean;
   }) => {
     const { date, allDay } = arg;
+    const start = DateTime.fromJSDate(date);
     this.setState({
-      start: DateTime.fromJSDate(date),
+      start: start.set({ hour: 20 }),
       dialogOpen: true,
       allDay: allDay,
     });
