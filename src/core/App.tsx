@@ -1,7 +1,6 @@
 import React from 'react';
 import { Helmet } from 'react-helmet';
 import CssBaseline from '@material-ui/core/CssBaseline';
-import Container from '@material-ui/core/Container';
 import TopBar from './Topbar/Topbar';
 import { createMuiTheme } from '@material-ui/core';
 import { ThemeProvider } from '@material-ui/styles';
@@ -14,12 +13,12 @@ import FirebaseContextProvider from './Session/FirebaseContextProvider';
 import ServicesContextProvider from '../services/ServicesContextProvider';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { faGithub } from '@fortawesome/free-brands-svg-icons';
+import AppContainer from './AppContainer';
 
 library.add(faGithub);
 
 
 const theme = createMuiTheme();
-
 
 const App: React.FC = () => {
   return (
@@ -34,9 +33,9 @@ const App: React.FC = () => {
                 </Helmet>
                 <CssBaseline />
                 <TopBar />
-                <Container component="main" >
+                <AppContainer>
                   <AppRoutes />
-                </Container>
+                </AppContainer>
               </SnackbarProvider>
             </MuiPickersUtilsProvider>
           </ThemeProvider>
