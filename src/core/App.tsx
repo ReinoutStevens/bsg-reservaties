@@ -14,7 +14,6 @@ import FirebaseContextProvider from './Session/FirebaseContextProvider';
 import ServicesContextProvider from '../services/ServicesContextProvider';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { faGithub } from '@fortawesome/free-brands-svg-icons';
-import Footer from './Footer/Footer';
 
 library.add(faGithub);
 
@@ -35,10 +34,9 @@ const App: React.FC = () => {
                 </Helmet>
                 <CssBaseline />
                 <TopBar />
-                <Container component="main">
+                <Container component="main" >
                   <AppRoutes />
                 </Container>
-                <Footer />
               </SnackbarProvider>
             </MuiPickersUtilsProvider>
           </ThemeProvider>

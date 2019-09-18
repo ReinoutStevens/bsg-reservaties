@@ -1,5 +1,5 @@
 import { DateTime } from 'luxon';
-import firebase, { firestore } from 'firebase/app';
+import firebase from 'firebase/app';
 import 'firebase/firestore';
 import 'firebase/auth';
 import { CalendarEvent, CreateCalendarEventInput, UpdateCalendarEventInput, ApproveCalendarEventInput } from './Events';
@@ -24,7 +24,7 @@ class EventServices {
 
   constructor(firebase: Firebase) {
     this.db = firebase.db;
-    this.rentables = [];
+    this.rentables = null;
   }
 
   async getApprovedEvents(start: DateTime, end: DateTime): Promise<CalendarEvent[]> {
@@ -259,8 +259,8 @@ class EventServices {
   }
 
   private mapEvent(
-    docSnapshot: firestore.QueryDocumentSnapshot,
-    data: firestore.DocumentData,
+    docSnapshot: firebase.firestore.QueryDocumentSnapshot,
+    data: firebase.firestore.DocumentData,
     rentables: Rentable[]
   ): CalendarEvent {
     return {

@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  Button,
   Checkbox,
   FormControlLabel,
   FormGroup,
@@ -21,6 +20,7 @@ import withServices, { WithServices } from '../../services/withServices';
 import withFirebase, { WithFirebase } from '../../core/Session/withFirebase';
 import { withRouter, RouteComponentProps } from 'react-router';
 import { Rentable } from '../../services/Rentable';
+import FormButton from '../../core/Form/FormButton';
 
 export interface NewEventProps {
 }
@@ -58,7 +58,8 @@ class NewEvent extends React.Component<NewEventProps_, NewEventState> {
   async componentDidMount() {
     const { services } = this.props;
     const rentables = await services.events.getRentables();
-    this.setState({ loading: false, rentables: rentables });
+    const rentableId = rentables.length > 0 ? rentables[0].id : null;
+    this.setState({ loading: false, rentables: rentables, rentableId: rentableId });
   }
 
   render() {
@@ -76,9 +77,9 @@ class NewEvent extends React.Component<NewEventProps_, NewEventState> {
             {this.renderEndPicker()}
           </Grid>
         </Grid>
-        <Button onClick={this.save} color="primary" disabled={!this.canSave()}>
+        <FormButton onClick={this.save} color="primary" disabled={!this.canSave()}>
           Create
-        </Button>
+        </FormButton>
       </Form>
     );
   }
@@ -101,7 +102,7 @@ class NewEvent extends React.Component<NewEventProps_, NewEventState> {
       rentableId: rentableId || undefined,
     }
     services.events.createEvent(evInput).then((ev) => {
-      enqueueSnackbar(`Requested ${ev.title}`, { variant: 'success' });
+      enqueueSnackbar(`Requested ${ev.title}`);
     }).catch((e) => {
       (console).error(e);
       enqueueSnackbar(`Failed requesting ${title}`, { variant: 'error' });
@@ -146,7 +147,6 @@ class NewEvent extends React.Component<NewEventProps_, NewEventState> {
           variant="outlined"
           input={<Input name="Location" id="age-native-helper" />}
         >
-          <option value="" />
           {rentables.map((rentable) => {
             return (
               <option key={rentable.id} value={rentable.id}>{rentable.name}</option>

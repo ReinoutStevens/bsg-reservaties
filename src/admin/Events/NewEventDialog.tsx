@@ -106,7 +106,7 @@ class NewEventDialog extends React.Component<NewEventDialogProps_, NewEventDialo
       userId: currentUser!.uid,
     };
     services.events.createApprovedEvent(evInput).then((ev) => {
-      enqueueSnackbar(`Created ${ev.title}`, { variant: 'success' });
+      enqueueSnackbar(`Created ${ev.title}`);
       this.props.onNewEvent(ev);
     }).catch((e) => {
       (console).error(e);

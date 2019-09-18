@@ -82,7 +82,7 @@ app.post('/createUser', async (req, res) => {
     if (!email || !displayName) {
       throw new Error('missing data');
     }
-    await admin.auth().createUser({
+    const createdUser = await admin.auth().createUser({
       email: email,
       password: generator.generate({
         length: 10,
@@ -91,6 +91,11 @@ app.post('/createUser', async (req, res) => {
       displayName: displayName,
       disabled: false,
     });
+    await admin.firestore().collection('users').doc(user.uid).set({
+      isAdmin: false,
+      displayName: createdUser.displayName,
+      email: createdUser.email,
+    })
     res.status(200).json({ data: 'ok' });
   } catch (e) {
     (console).error(e);

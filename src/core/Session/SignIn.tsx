@@ -143,10 +143,21 @@ class SignIn extends React.Component<SignInProps_, SignInState> {
     if (!redirect) {
       return null;
     }
+    const to = this.redirectTo();
+    return <Redirect to={to || '/'} />;
+  }
+
+  private redirectTo() {
     const { location } = this.props;
+    if (!location || !location.state) {
+      return '/';
+    }
     const { from } = location.state;
-    (console).log(from);
-    return <Redirect to={from || '/'} />;
+    if (!from) {
+      return '/';
+    } else {
+      return from;
+    }
   }
 }
 

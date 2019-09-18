@@ -108,7 +108,7 @@ class UpdateEventDialog extends React.Component<UpdateEventDialogProps_, UpdateE
       userId: event.userId,
     }
     services.events.updateEvent(evInput).then((res) => {
-      enqueueSnackbar(`Updated ${title}`, { variant: 'success' });
+      enqueueSnackbar(`Updated ${title}`);
       this.props.onUpdateEvent(event, res);
     }).catch((e) => {
       (console).error(e);
