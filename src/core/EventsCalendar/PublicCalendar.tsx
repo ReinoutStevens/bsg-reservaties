@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import EventsCalendar from './EventsCalendar';
 import { DateTime } from 'luxon';
 import { CalendarEvent } from '../../services/Events';
@@ -7,6 +7,8 @@ import withServices, { WithServices } from '../../services/withServices';
 import Rentables, { RentableFilter } from '../Rentables/Rentables';
 import Skeleton from '@material-ui/lab/Skeleton';
 import { Grid } from '@material-ui/core';
+
+const PartyFab = React.lazy(() => import('../PartyMode/PartyFab'));
 
 type PublicCalendarProps = WithServices
 
@@ -76,6 +78,9 @@ class PublicCalendar extends React.Component<PublicCalendarProps, PublicCalendar
           </Grid>
         </Grid>
         {this.renderEventInfo()}
+        <Suspense fallback={null}>
+          <PartyFab />
+        </Suspense>
       </>
     );
   }
