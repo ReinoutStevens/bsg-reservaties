@@ -52,8 +52,7 @@ class UnapprovedEvents extends React.Component<UnapprovedEventsProps_, Unapprove
             <TableRow>
               <TableCell>Name</TableCell>
               <TableCell>Location</TableCell>
-              <TableCell>Start</TableCell>
-              <TableCell>End</TableCell>
+              <TableCell>Day</TableCell>
               <TableCell align="right">Actions</TableCell>
             </TableRow>
           </TableHead>

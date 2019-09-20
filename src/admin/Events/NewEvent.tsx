@@ -1,30 +1,22 @@
 import React from 'react';
-import {
-  Dialog,
-  TextField,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
-  Button,
-} from '@material-ui/core';
+
 import { withSnackbar, WithSnackbarProps } from 'notistack';
 import { DateTime } from 'luxon';
 import {
   MaterialUiPickersDate, DatePicker,
 } from "@material-ui/pickers";
-import withCalendar, { WithCalendar } from '../../core/EventsCalendar/withCalendar';
+import Form from '../../core/Form/Form';
+import FormField from '../../core/Form/FormField';
 import withServices, { WithServices } from '../../services/withServices';
 import withFirebase, { WithFirebase } from '../../core/Session/withFirebase';
+import { withRouter, RouteComponentProps } from 'react-router';
+import FormButton from '../../core/Form/FormButton';
 import LocationField from '../../core/Form/LocationField';
 
-export interface NewEventDialogProps {
-  open: boolean;
-  onClose: () => void;
-  day?: DateTime | null;
+export interface NewEventProps {
 }
 
-export interface NewEventDialogState {
+export interface NewEventState {
   title: string;
   description: string;
   day: DateTime | null;
@@ -32,52 +24,31 @@ export interface NewEventDialogState {
   rentableId: string | null;
 }
 
-type NewEventDialogProps_ = NewEventDialogProps & WithSnackbarProps & WithCalendar & WithServices & WithFirebase;
+type NewEventProps_ = NewEventProps & WithSnackbarProps & WithServices & WithFirebase & RouteComponentProps;
 
-class NewEventDialog extends React.Component<NewEventDialogProps_, NewEventDialogState> {
-  constructor(props: NewEventDialogProps_) {
+class NewEvent extends React.Component<NewEventProps_, NewEventState> {
+  constructor(props: NewEventProps_) {
     super(props);
     this.state = {
       title: '',
       description: '',
       url: null,
       rentableId: null,
-      day: props.day || null,
-    }
-  }
-
-  componentDidUpdate(prevProps: NewEventDialogProps) {
-    if (this.props.day !== prevProps.day) {
-      this.setState({
-        day: this.props.day || null,
-      });
+      day: null,
     }
   }
 
   render() {
-    const { open, onClose } = this.props;
-
     return (
-      <Dialog open={open}>
-        <DialogTitle>Create Event</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Create a new event
-          </DialogContentText>
-          {this.renderTitleField()}
-          {this.renderDescriptionField()}
-          {this.renderLocationField()}
-          {this.renderDayPicker()}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={onClose} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={this.save} color="primary" disabled={!this.canSave()}>
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <Form title="Create Event">
+        {this.renderTitleField()}
+        {this.renderDescriptionField()}
+        {this.renderLocationField()}
+        {this.renderDayPicker()}
+        <FormButton onClick={this.save} color="primary" disabled={!this.canSave()}>
+          Create
+        </FormButton>
+      </Form>
     );
   }
 
@@ -87,32 +58,30 @@ class NewEventDialog extends React.Component<NewEventDialogProps_, NewEventDialo
   }
 
   private save = () => {
-    const { onClose, enqueueSnackbar, services, currentUser } = this.props;
+    const { enqueueSnackbar, services, currentUser, history } = this.props;
     const { title, day, description, rentableId } = this.state;
     const evInput = {
       title: title!.trim(),
-      day: day!.startOf('day'),
+      day: day!,
       description: description.length > 0 ? description : null,
       approved: true,
       userId: currentUser!.uid,
-      rentableId: rentableId ? rentableId : undefined,
-    };
+      rentableId: rentableId || undefined,
+    }
     services.events.createApprovedEvent(evInput).then((ev) => {
-      enqueueSnackbar(`Created ${ev.title}`);
-      this.props.onNewEvent(ev);
+      enqueueSnackbar(`Requested ${ev.title}`);
     }).catch((e) => {
       (console).error(e);
-      enqueueSnackbar(`Failed saving ${title}`, { variant: 'error' });
-    })
-    onClose();
+      enqueueSnackbar(`Failed requesting ${title}`, { variant: 'error' });
+    });
+    history.push('/admin/events');
   }
 
   private renderTitleField() {
     return (
-      <TextField
+      <FormField
         onChange={this.changeTitle}
         fullWidth
-        margin="dense"
         label="Title"
       />
     );
@@ -120,11 +89,10 @@ class NewEventDialog extends React.Component<NewEventDialogProps_, NewEventDialo
 
   private renderDescriptionField() {
     return (
-      <TextField
+      <FormField
         onChange={this.changeDescription}
-        fullWidth
         multiline
-        margin="dense"
+        fullWidth
         label="Description"
       />
     );
@@ -135,7 +103,8 @@ class NewEventDialog extends React.Component<NewEventDialogProps_, NewEventDialo
     return (
       <LocationField
         rentableId={rentableId}
-        onChange={this.selectRentable} />
+        onChange={this.selectRentable}
+      />
     );
   }
 
@@ -149,8 +118,9 @@ class NewEventDialog extends React.Component<NewEventDialogProps_, NewEventDialo
       <DatePicker
         value={day}
         onChange={this.changeDay}
-        fullWidth
         label="Day"
+        margin="normal"
+        fullWidth
       />
     );
   }
@@ -168,4 +138,4 @@ class NewEventDialog extends React.Component<NewEventDialogProps_, NewEventDialo
   }
 }
 
-export default withSnackbar(withCalendar(withFirebase(withServices(NewEventDialog))));
+export default withSnackbar(withFirebase(withRouter(withServices(NewEvent))));

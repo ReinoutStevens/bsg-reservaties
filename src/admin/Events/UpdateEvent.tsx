@@ -1,5 +1,4 @@
 import React from 'react';
-
 import { withSnackbar, WithSnackbarProps } from 'notistack';
 import { DateTime } from 'luxon';
 import {
@@ -8,45 +7,49 @@ import {
 import Form from '../../core/Form/Form';
 import FormField from '../../core/Form/FormField';
 import withServices, { WithServices } from '../../services/withServices';
-import withFirebase, { WithFirebase } from '../../core/Session/withFirebase';
-import { withRouter, RouteComponentProps } from 'react-router';
 import FormButton from '../../core/Form/FormButton';
 import LocationField from '../../core/Form/LocationField';
+import { CalendarEvent } from '../../services/Events';
+import { withRouter, RouteComponentProps } from 'react-router';
 
-export interface NewEventProps {
+export interface UpdateEventProps {
+  event: CalendarEvent;
 }
 
-export interface NewEventState {
+export interface UpdateEventState {
   title: string;
   description: string;
   day: DateTime | null;
   url: string | null;
   rentableId: string | null;
+  approved: boolean;
 }
 
-type NewEventProps_ = NewEventProps & WithSnackbarProps & WithServices & WithFirebase & RouteComponentProps;
+type UpdateEventProps_ = UpdateEventProps & WithSnackbarProps & WithServices & RouteComponentProps;
 
-class NewEvent extends React.Component<NewEventProps_, NewEventState> {
-  constructor(props: NewEventProps_) {
+class UpdateEvent extends React.Component<UpdateEventProps_, UpdateEventState> {
+  constructor(props: UpdateEventProps_) {
     super(props);
+    const { event } = props;
     this.state = {
-      title: '',
-      description: '',
-      url: null,
-      rentableId: null,
-      day: null,
+      title: event.title,
+      description: event.description || '',
+      url: event.url || null,
+      rentableId: event.rentable ? event.rentable.id : null,
+      day: event.start,
+      approved: event.approved,
     }
   }
 
   render() {
     return (
-      <Form title="Create Event">
+      <Form title="Update Event">
         {this.renderTitleField()}
         {this.renderDescriptionField()}
         {this.renderLocationField()}
         {this.renderDayPicker()}
-        <FormButton onClick={this.save} color="primary" disabled={!this.canSave()}>
-          Create
+        <FormButton onClick={this.update} color="primary" disabled={!this.canSave()}>
+          Update
         </FormButton>
       </Form>
     );
@@ -57,24 +60,25 @@ class NewEvent extends React.Component<NewEventProps_, NewEventState> {
     return !!(title && title.trim().length > 0 && day);
   }
 
-  private save = () => {
-    const { enqueueSnackbar, services, currentUser, history } = this.props;
-    const { title, day, description, rentableId } = this.state;
+  private update = () => {
+    const { enqueueSnackbar, services, history } = this.props;
+    const { title, day, description, rentableId, approved } = this.state;
     const evInput = {
       title: title!.trim(),
       day: day!,
       description: description.length > 0 ? description : null,
-      approved: false,
-      userId: currentUser!.uid,
+      userId: this.props.event.userId,
       rentableId: rentableId || undefined,
+      approved: approved,
+      id: this.props.event.id,
     }
-    services.events.createEvent(evInput).then((ev) => {
-      enqueueSnackbar(`Requested ${ev.title}`);
+    services.events.updateEvent(evInput).then((ev) => {
+      enqueueSnackbar(`Updated ${ev.title}`);
     }).catch((e) => {
       (console).error(e);
-      enqueueSnackbar(`Failed requesting ${title}`, { variant: 'error' });
+      enqueueSnackbar(`Failed updating ${title}`, { variant: 'error' });
     });
-    history.push('/user/events');
+    history.push('/admin/events');
   }
 
   private renderTitleField() {
@@ -83,6 +87,7 @@ class NewEvent extends React.Component<NewEventProps_, NewEventState> {
         onChange={this.changeTitle}
         fullWidth
         label="Title"
+        value={this.state.title}
       />
     );
   }
@@ -94,6 +99,7 @@ class NewEvent extends React.Component<NewEventProps_, NewEventState> {
         multiline
         fullWidth
         label="Description"
+        value={this.state.description}
       />
     );
   }
@@ -138,4 +144,4 @@ class NewEvent extends React.Component<NewEventProps_, NewEventState> {
   }
 }
 
-export default withSnackbar(withFirebase(withRouter(withServices(NewEvent))));
+export default withSnackbar(withRouter(withServices(UpdateEvent)));

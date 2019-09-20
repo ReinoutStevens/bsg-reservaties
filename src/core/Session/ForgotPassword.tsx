@@ -89,7 +89,6 @@ class ForgotPassword extends React.Component<ForgotPasswordProps_, ForgotPasswor
     const { email } = this.state;
     try {
       this.setState({ error: null });
-      (console).log('hello');
       await firebase.passwordReset(email);
     } catch (e) {
       (console).error(e);

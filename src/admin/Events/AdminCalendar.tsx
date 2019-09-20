@@ -4,11 +4,10 @@ import NewEventDialog from './NewEventDialog';
 import EventsCalendar, { ExtendedCalendarEvent } from '../../core/EventsCalendar/EventsCalendar';
 import AdminEventInfo from './AdminEventInfo';
 import withServices, { WithServices } from '../../services/withServices';
+import NewEventFab from './NewEventFab';
 
 interface EventsState {
-  start: DateTime | null;
-  end: DateTime | null;
-  allDay: boolean;
+  day: DateTime | null;
   dialogOpen: boolean;
   anchorEl: HTMLElement | null;
   activeEvent: ExtendedCalendarEvent | null;
@@ -20,10 +19,8 @@ class AdminCalendar extends React.Component<WithServices, EventsState> {
   constructor(props: WithServices) {
     super(props);
     this.state = {
-      start: null,
-      end: null,
+      day: null,
       dialogOpen: false,
-      allDay: false,
       activeEvent: null,
       anchorEl: null,
     }
@@ -31,7 +28,7 @@ class AdminCalendar extends React.Component<WithServices, EventsState> {
 
 
   render() {
-    const { dialogOpen, start, end, allDay } = this.state;
+    const { dialogOpen, day } = this.state;
     return (
       <EventsCalendar
         events={this.getEvents}
@@ -51,11 +48,10 @@ class AdminCalendar extends React.Component<WithServices, EventsState> {
         {this.renderEventInfo()}
         <NewEventDialog
           open={dialogOpen}
-          start={start}
-          end={end}
+          day={day}
           onClose={this.onDialogClose}
-          allDay={allDay}
         />
+        <NewEventFab />
       </ EventsCalendar>
     );
   }
@@ -79,26 +75,21 @@ class AdminCalendar extends React.Component<WithServices, EventsState> {
     date: Date;
     allDay: boolean;
   }) => {
-    const { date, allDay } = arg;
-    const start = DateTime.fromJSDate(date);
+    const { date } = arg;
+    const day = DateTime.fromJSDate(date);
     this.setState({
-      start: start.set({ hour: 20 }),
+      day: day,
       dialogOpen: true,
-      allDay: allDay,
     });
   }
 
   private handleDateSelect = (arg: {
     start: Date;
-    end: Date;
-    allDay: boolean;
   }) => {
-    const { start, end, allDay } = arg;
+    const { start } = arg;
     this.setState({
-      start: DateTime.fromJSDate(start),
-      end: DateTime.fromJSDate(end),
+      day: DateTime.fromJSDate(start).startOf('day'),
       dialogOpen: true,
-      allDay: allDay,
     });
   }
 

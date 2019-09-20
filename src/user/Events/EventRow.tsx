@@ -34,7 +34,6 @@ class EventRow extends React.Component<EventRowProps_, EventRowState> {
         </TableCell>
         <TableCell>{event.rentable ? event.rentable.name : '/'}</TableCell>
         <TableCell>{formatDate(event.start)}</TableCell>
-        <TableCell>{formatDate(event.end)}</TableCell>
         <TableCell>{event.approved ? 'Approved' : 'Awaiting Approval'}</TableCell>
         <TableCell align="right">{this.renderActions()}</TableCell>
       </TableRow>

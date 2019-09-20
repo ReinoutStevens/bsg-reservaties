@@ -163,7 +163,7 @@ class AdminEventInfo extends React.Component<AdminEventInfoProps_, AdminEventInf
     const { event, onClose, enqueueSnackbar, services } = this.props;
     services.events.deleteEvent(event.id, event.approved).then(() => {
       event.baseEvent.remove();
-      enqueueSnackbar(`Deleted ${event.title}`, { variant: 'success' });
+      enqueueSnackbar(`Deleted ${event.title}`);
     }).catch((e) => {
       (console).error(e);
       enqueueSnackbar(`Failed to delete ${event.title}`, { variant: 'error' });

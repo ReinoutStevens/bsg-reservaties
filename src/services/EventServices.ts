@@ -16,6 +16,8 @@ interface NewRentableInput {
   color: string;
 }
 
+const approvedColl = 'events';
+const unapprovedColl = 'unapproved_events';
 
 class EventServices {
 
@@ -27,8 +29,26 @@ class EventServices {
     this.rentables = null;
   }
 
+  async getEvent(id: string): Promise<CalendarEvent> {
+    const approvedPromise = this.db.collection(approvedColl).doc(id).get();
+    const unapprovedPromise = this.db.collection(unapprovedColl).doc(id).get();
+    const rentablesPromise = this.getRentables();
+    const [approved, unapproved, rentables] = await Promise.all([
+      approvedPromise,
+      unapprovedPromise,
+      rentablesPromise,
+    ]);
+    if (approved.exists) {
+      return this.mapEvent(approved, approved.data()!, rentables);
+    } else if (unapproved.exists) {
+      return this.mapEvent(unapproved, unapproved.data()!, rentables);
+    } else {
+      throw new Error('Expected to find event');
+    }
+  }
+
   async getApprovedEvents(start: DateTime, end: DateTime): Promise<CalendarEvent[]> {
-    const snapshotPromise = await this.db.collection('events')
+    const snapshotPromise = this.db.collection(approvedColl)
       .where('start', '>=', start.toJSDate())
       .orderBy('start')
       .orderBy('end', 'asc')
@@ -50,7 +70,7 @@ class EventServices {
   }
 
   async getUnapprovedEvents(): Promise<CalendarEvent[]> {
-    const snapshotPromise = await this.db.collection('unapproved_events')
+    const snapshotPromise = this.db.collection(unapprovedColl)
       .get();
     const rentablesPromise = this.getRentables();
     const [snapshot, rentables] = await Promise.all([snapshotPromise, rentablesPromise]);
@@ -73,7 +93,7 @@ class EventServices {
   }
 
   async getAllUnapprovedEvents(start: DateTime, end: DateTime): Promise<CalendarEvent[]> {
-    const snapshotPromise = this.db.collection('unapproved_events')
+    const snapshotPromise = this.db.collection(unapprovedColl)
       .where('start', '>=', start.toJSDate())
       .orderBy('start')
       .orderBy('end', 'asc')
@@ -95,7 +115,7 @@ class EventServices {
   }
 
   async getAllApprovedEvents(start: DateTime, end: DateTime): Promise<CalendarEvent[]> {
-    const snapshotPromise = this.db.collection('events')
+    const snapshotPromise = this.db.collection(approvedColl)
       .where('start', '>=', start.toJSDate())
       .orderBy('start')
       .orderBy('end', 'asc')
@@ -125,7 +145,7 @@ class EventServices {
   }
 
   async getUserApprovedEvents(uid: string, start: DateTime): Promise<CalendarEvent[]> {
-    const snapshotPromise = await this.db.collection('events')
+    const snapshotPromise = await this.db.collection(approvedColl)
       .where('userId', '==', uid)
       .where('start', '>=', start.toJSDate())
       .get();
@@ -142,7 +162,7 @@ class EventServices {
   }
 
   async getUserUnapprovedEvents(uid: string, start: DateTime): Promise<CalendarEvent[]> {
-    const snapshotPromise = await this.db.collection('unapproved_events')
+    const snapshotPromise = await this.db.collection(unapprovedColl)
       .where('userId', '==', uid)
       .where('start', '>=', start.toJSDate())
       .get();
@@ -159,50 +179,71 @@ class EventServices {
   }
 
   async createEvent(input: CreateCalendarEventInput): Promise<CalendarEvent> {
+    const { day, ...rest } = input;
+    const start = day.startOf('day');
+    const end = day.endOf('day');
     const ev = {
-      ...input,
-      start: input.start.toJSDate(),
-      end: input.end.toJSDate(),
+      ...rest,
+      start: start.toJSDate(),
+      end: end.toJSDate(),
       approved: false,
     }
-    const ref = await this.db.collection('unapproved_events').add(ev);
+    const ref = await this.db.collection(unapprovedColl).add(ev);
     return {
-      ...input,
+      ...rest,
       approved: false,
+      start,
+      end,
       id: ref.id,
+      rentable: await this.getRentable(input.rentableId),
     };
   }
 
   async createApprovedEvent(input: CreateCalendarEventInput): Promise<CalendarEvent> {
+    const { day, ...rest } = input;
+    const start = day.startOf('day');
+    const end = day.endOf('day');
     const ev = {
-      ...input,
-      start: input.start.toJSDate(),
-      end: input.end.toJSDate(),
+      ...rest,
+      start: start.toJSDate(),
+      end: end.toJSDate(),
       approved: true,
     }
-    const ref = await this.db.collection('events').add(ev);
+    const ref = await this.db.collection(approvedColl).add(ev);
     return {
-      ...input,
-      approved: false,
+      ...rest,
+      approved: true,
       id: ref.id,
+      start,
+      end,
+      rentable: await this.getRentable(input.rentableId),
     };
   }
 
   async updateEvent(input: UpdateCalendarEventInput): Promise<CalendarEvent> {
-    const { start, end, id } = input;
+    const { day, id, ...rest } = input;
+    const start = day.startOf('day');
+    const end = day.endOf('day');
     const ev = {
-      ...input,
+      ...rest,
       start: start.toJSDate(),
       end: end.toJSDate(),
       approved: input.approved,
     }
-    const ref = this.db.collection('events').doc(id);
+    const collection = input.approved ? approvedColl : unapprovedColl;
+    const ref = this.db.collection(collection).doc(id);
     await ref.update(ev);
-    return input;
+    return {
+      ...rest,
+      id,
+      start,
+      end,
+      rentable: await this.getRentable(input.rentableId),
+    }
   }
 
   async approveEvent(input: ApproveCalendarEventInput): Promise<void> {
-    const ref = this.db.collection('unapproved_events').doc(input.id);
+    const ref = this.db.collection(unapprovedColl).doc(input.id);
     const eventSnapshot = await ref.get();
     if (!eventSnapshot.exists) {
       throw new Error('Event does not exist');
@@ -213,12 +254,12 @@ class EventServices {
       id: eventSnapshot.id,
       approved: true,
     }
-    await this.db.collection('events').add(newEvent);
+    await this.db.collection(approvedColl).add(newEvent);
     await ref.delete();
   }
 
   deleteEvent(eventId: string, approved: boolean): Promise<void> {
-    const collection = approved ? 'events' : 'unapproved_events';
+    const collection = approved ? approvedColl : unapprovedColl;
     return this.db.collection(collection).doc(eventId).delete();
   }
 
@@ -258,8 +299,12 @@ class EventServices {
     return newRentable;
   }
 
+  deleteRentable(id: string) {
+    return this.db.collection('rentables').doc(id).delete();
+  }
+
   private mapEvent(
-    docSnapshot: firebase.firestore.QueryDocumentSnapshot,
+    docSnapshot: firebase.firestore.DocumentSnapshot,
     data: firebase.firestore.DocumentData,
     rentables: Rentable[]
   ): CalendarEvent {
@@ -274,6 +319,13 @@ class EventServices {
       url: data.url,
       userId: data.userId,
     }
+  }
+
+  private async getRentable(id: string | null | undefined) {
+    if (!id) {
+      return undefined;
+    }
+    return (await this.getRentables()).find((r) => r.id === id);
   }
 }
 

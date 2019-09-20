@@ -3,8 +3,10 @@ import { CalendarEvent } from '../../services/Events';
 import { TableRow, TableCell, IconButton } from '@material-ui/core';
 import DoneIcon from '@material-ui/icons/Done';
 import DeleteIcon from '@material-ui/icons/Delete';
+import EditIcon from '@material-ui/icons/Edit';
 import withServices, { WithServices } from '../../services/withServices';
 import formatDate from '../../util/dateFormat';
+import { withRouter, RouteComponentProps } from 'react-router';
 
 export interface EventRowProps {
   event: CalendarEvent;
@@ -16,7 +18,7 @@ export interface EventRowState {
   processing: boolean;
 }
 
-type EventRowProps_ = EventRowProps & WithServices;
+type EventRowProps_ = EventRowProps & WithServices & RouteComponentProps;
 
 class EventRow extends React.Component<EventRowProps_, EventRowState> {
 
@@ -36,7 +38,6 @@ class EventRow extends React.Component<EventRowProps_, EventRowState> {
         </TableCell>
         <TableCell>{event.rentable ? event.rentable.name : '/'}</TableCell>
         <TableCell>{formatDate(event.start)}</TableCell>
-        <TableCell>{formatDate(event.end)}</TableCell>
         <TableCell align="right">{this.renderActions()}</TableCell>
       </TableRow>
     );
@@ -51,6 +52,9 @@ class EventRow extends React.Component<EventRowProps_, EventRowState> {
       <div>
         <IconButton onClick={this.approve} size="small">
           <DoneIcon />
+        </IconButton>
+        <IconButton onClick={this.edit} size="small">
+          <EditIcon />
         </IconButton>
         <IconButton onClick={this.delete} size="small">
           <DeleteIcon />
@@ -76,6 +80,12 @@ class EventRow extends React.Component<EventRowProps_, EventRowState> {
       onApprove(event);
     }
   }
+
+  private edit = () => {
+    const { history, event } = this.props;
+    history.push(`/admin/events/update/${event.id}`);
+  }
+
 }
 
-export default withServices(EventRow);
+export default withRouter(withServices(EventRow));

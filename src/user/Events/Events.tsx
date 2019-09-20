@@ -51,15 +51,15 @@ class Events extends React.Component<EventsProps_, EventsState> {
     const { classes } = this.props
     return (
       <>
-      <Container>
-        <div className={classes.paper}>
-          <Typography component="h1" variant="h5">
-            My Upcoming Events
+        <Container>
+          <div className={classes.paper}>
+            <Typography component="h1" variant="h5">
+              My Upcoming Events
           </Typography>
-          {this.renderEvents()}
-        </div>
-      </Container>
-      <NewEventFab />
+            {this.renderEvents()}
+          </div>
+        </Container>
+        <NewEventFab />
       </>
     )
   }
@@ -77,8 +77,7 @@ class Events extends React.Component<EventsProps_, EventsState> {
             <TableRow>
               <TableCell>Name</TableCell>
               <TableCell>Location</TableCell>
-              <TableCell>Start</TableCell>
-              <TableCell>End</TableCell>
+              <TableCell>Day</TableCell>
               <TableCell>Status</TableCell>
               <TableCell align="right">Actions</TableCell>
             </TableRow>

@@ -13,8 +13,7 @@ export interface CalendarEvent {
 }
 
 export interface CreateCalendarEventInput {
-  start: DateTime;
-  end: DateTime;
+  day: DateTime;
   title: string;
   description: string | null;
   rentableId?: string;
@@ -25,8 +24,7 @@ export interface CreateCalendarEventInput {
 
 export interface UpdateCalendarEventInput {
   id: string;
-  start: DateTime;
-  end: DateTime;
+  day: DateTime;
   title: string;
   description: string | null;
   rentableId?: string;

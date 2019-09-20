@@ -6,17 +6,16 @@ import {
   DialogContent,
   DialogActions,
   Button,
-  Checkbox,
-  FormControlLabel
 } from '@material-ui/core';
 import { withSnackbar, WithSnackbarProps } from 'notistack';
 import { DateTime } from 'luxon';
 import {
-  DateTimePicker, MaterialUiPickersDate, DatePicker,
+  MaterialUiPickersDate, DatePicker,
 } from "@material-ui/pickers";
 import { ExtendedCalendarEvent } from '../../core/EventsCalendar/EventsCalendar';
 import withCalendar, { WithCalendar } from '../../core/EventsCalendar/withCalendar';
 import withServices, { WithServices } from '../../services/withServices';
+import LocationField from '../../core/Form/LocationField';
 
 export interface UpdateEventDialogProps {
   open: boolean;
@@ -27,11 +26,9 @@ export interface UpdateEventDialogProps {
 export interface UpdateEventDialogState {
   title: string;
   description: string;
-  start: DateTime | null;
-  end: DateTime | null;
+  day: DateTime | null;
   url: string | null;
   rentableId: string | null;
-  allDay: boolean;
 }
 
 type UpdateEventDialogProps_ = UpdateEventDialogProps & WithSnackbarProps & WithCalendar & WithServices;
@@ -45,9 +42,7 @@ class UpdateEventDialog extends React.Component<UpdateEventDialogProps_, UpdateE
       description: event.description || '',
       url: event.url || null,
       rentableId: event.rentable ? event.rentable.id : null,
-      start: event.start,
-      end: event.end,
-      allDay: false,
+      day: event.start,
     }
   }
 
@@ -59,9 +54,7 @@ class UpdateEventDialog extends React.Component<UpdateEventDialogProps_, UpdateE
         description: event.description || '',
         url: event.url || null,
         rentableId: event.rentable ? event.rentable.id : null,
-        start: event.start,
-        end: event.end,
-        allDay: false,
+        day: event.start,
       })
     }
   }
@@ -74,9 +67,8 @@ class UpdateEventDialog extends React.Component<UpdateEventDialogProps_, UpdateE
         <DialogContent>
           {this.renderTitleField()}
           {this.renderDescriptionField()}
-          {this.renderAllDay()}
-          {this.renderStartPicker()}
-          {this.renderEndPicker()}
+          {this.renderLocationField()}
+          {this.renderDayPicker()}
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose} color="primary">
@@ -91,21 +83,21 @@ class UpdateEventDialog extends React.Component<UpdateEventDialogProps_, UpdateE
   }
 
   private canUpdate(): boolean {
-    const { title, start, end } = this.state;
-    return !!(title && title.trim().length > 0 && start && end && end > start);
+    const { title, day } = this.state;
+    return !!(title && title.trim().length > 0 && day);
   }
 
   private update = () => {
     const { onClose, enqueueSnackbar, event, services } = this.props;
-    const { title, start, end, description, allDay } = this.state;
+    const { title, day, description, rentableId } = this.state;
     const evInput = {
       id: event.id,
       title: title!.trim(),
-      start: allDay ? start!.startOf('day') : start!,
-      end: allDay ? start!.endOf('day') : end!,
+      day: day!.startOf('day'),
       description: description.length > 0 ? description : null,
       approved: event.approved,
       userId: event.userId,
+      rentableId: rentableId ? rentableId : undefined,
     }
     services.events.updateEvent(evInput).then((res) => {
       enqueueSnackbar(`Updated ${title}`);
@@ -144,78 +136,34 @@ class UpdateEventDialog extends React.Component<UpdateEventDialogProps_, UpdateE
     );
   }
 
-  private renderAllDay() {
-    const { allDay } = this.state;
+  private renderDayPicker() {
+    const { day } = this.state;
     return (
-      <FormControlLabel
-        control={
-          <Checkbox checked={allDay} onChange={this.changeAllDay} value="checkedA" />
-        }
-        label="All day"
-      />
-    );
-  }
-
-  private renderStartPicker() {
-    const { start, allDay } = this.state;
-    if (allDay) {
-      return (
-        <DatePicker
-          value={start}
-          onChange={this.changeStartDate}
-          fullWidth
-          label="start"
-        />
-      );
-    } else {
-      return (
-        <DateTimePicker
-          value={start}
-          onChange={this.changeStartDate}
-          fullWidth
-          label="Start of event"
-          ampm={false}
-        />
-      );
-    }
-  }
-
-  private renderEndPicker() {
-    const { end, start, allDay } = this.state;
-    if (allDay) {
-      return null;
-    }
-    const minDate = start;
-    return (
-      <DateTimePicker
-        value={end}
-        onChange={this.changeEndDate}
-        minDate={minDate}
+      <DatePicker
+        value={day}
+        onChange={this.changeDay}
         fullWidth
-        label="End of event"
-        ampm={false}
+        label="Day"
       />
     );
   }
 
-  private changeAllDay = (ev: React.ChangeEvent<HTMLInputElement>, checked: boolean) => {
-    this.setState({ allDay: checked })
+  private renderLocationField() {
+    const { rentableId } = this.state;
+    return (
+      <LocationField
+        rentableId={rentableId}
+        onChange={this.selectRentable}
+      />
+    );
   }
 
-  private changeStartDate = (date: MaterialUiPickersDate) => {
-    const { end, allDay } = this.state;
-    if (!end && !allDay) {
-      this.setState({
-        start: date,
-        end: (date as DateTime).endOf('day'),
-      });
-    } else {
-      this.setState({ start: date });
-    }
+  private selectRentable = (id: string | null) => {
+    this.setState({ rentableId: id });
   }
 
-  private changeEndDate = (date: MaterialUiPickersDate) => {
-    this.setState({ end: date });
+  private changeDay = (date: MaterialUiPickersDate) => {
+    this.setState({ day: date });
   }
 
   private changeTitle = (ev: React.ChangeEvent<HTMLInputElement>) => {

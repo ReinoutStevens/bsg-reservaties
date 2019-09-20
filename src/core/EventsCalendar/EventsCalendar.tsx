@@ -78,6 +78,7 @@ class EventsCalendar extends React.Component<EventsCalendarProps_> {
               ...ev,
               start: ev.start.toJSDate(),
               end: ev.end.toJSDate(),
+              color: ev.rentable ? ev.rentable.color : undefined,
             });
           },
           onNewEvent: (ev) => {
@@ -89,6 +90,7 @@ class EventsCalendar extends React.Component<EventsCalendarProps_> {
               ...ev,
               start: ev.start.toJSDate(),
               end: ev.end.toJSDate(),
+              color: ev.rentable ? ev.rentable.color : undefined,
             });
           }
         }}>
