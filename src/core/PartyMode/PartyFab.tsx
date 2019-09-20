@@ -2,7 +2,7 @@ import React from 'react';
 import { Theme, createStyles } from '@material-ui/core/styles';
 import { WithStyles, withStyles } from '@material-ui/styles';
 import PartyModeIcon from '@material-ui/icons/PartyMode';
-import { Tooltip, Fab } from '@material-ui/core';
+import { Tooltip, Fab, Hidden } from '@material-ui/core';
 
 const styles = (theme: Theme) => createStyles({
   fab: {
@@ -42,11 +42,13 @@ class PartyFab extends React.Component<PartyFabProps_, PartyFabState> {
     const { partyActivated } = this.state;
 
     return (
-      <Tooltip title="All hail the zaalbeheerder">
-        <Fab aria-label="Add" className={classes.fab} color="primary" onClick={this.party} disabled={partyActivated}>
-          <PartyModeIcon />
-        </Fab>
-      </Tooltip>
+      <Hidden xsDown>
+        <Tooltip title="All hail the zaalbeheerder">
+          <Fab aria-label="Add" className={classes.fab} color="primary" onClick={this.party} disabled={partyActivated}>
+            <PartyModeIcon />
+          </Fab>
+        </Tooltip>
+      </Hidden>
     );
   }
 
