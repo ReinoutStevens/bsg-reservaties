@@ -5,12 +5,17 @@ import EventsCalendar, { ExtendedCalendarEvent } from '../../core/EventsCalendar
 import AdminEventInfo from './AdminEventInfo';
 import withServices, { WithServices } from '../../services/withServices';
 import NewEventFab from './NewEventFab';
+import Skeleton from '@material-ui/lab/Skeleton';
+import Rentables, { RentableFilter } from '../../core/Rentables/Rentables';
+import { Grid } from '@material-ui/core';
 
 interface EventsState {
   day: DateTime | null;
   dialogOpen: boolean;
   anchorEl: HTMLElement | null;
   activeEvent: ExtendedCalendarEvent | null;
+  loading: boolean;
+  rentables: RentableFilter[];
 }
 
 
@@ -23,37 +28,87 @@ class AdminCalendar extends React.Component<WithServices, EventsState> {
       dialogOpen: false,
       activeEvent: null,
       anchorEl: null,
+      loading: true,
+      rentables: [],
     }
   }
 
+  async componentDidMount() {
+    const { services } = this.props;
+    const rentables = await services.events.getRentables();
+    const rentableFilter = rentables.map((r) => Object.assign({}, r, { isActive: true }));
+    this.setState({
+      loading: false,
+      rentables: rentableFilter,
+    });
+  }
 
   render() {
-    const { dialogOpen, day } = this.state;
+    const { loading } = this.state;
+    if (loading) {
+      return this.renderLoading();
+    } else {
+      return this.renderLoaded();
+    }
+  }
+
+  private renderLoading() {
     return (
-      <EventsCalendar
-        events={this.getEvents}
-        calendarProps={
-          {
-            selectable: true,
-            selectConstraint: {
-              start: '00:01',
-              end: '23:59',
-            },
-            dateClick: this.handleDateClick,
-            select: this.handleDateSelect,
-          }
-        }
-        onEventClick={this.onEventClick}
-      >
-        {this.renderEventInfo()}
-        <NewEventDialog
-          open={dialogOpen}
-          day={day}
-          onClose={this.onDialogClose}
-        />
-        <NewEventFab />
-      </ EventsCalendar>
+      <Skeleton variant="rect" width="100%" height="100%" />
+    )
+  }
+
+
+  private renderLoaded() {
+    const { dialogOpen, day, rentables } = this.state;
+    const calendarKey = rentables.reduce((total, r) => {
+      return r.isActive ? total + 1 : total;
+    }, 0);
+    return (
+      <Grid direction="column" container>
+        <Grid item>
+          <Rentables rentables={rentables} onClick={this.rentableClicked} />
+        </Grid>
+        <Grid item>
+          <EventsCalendar
+            key={calendarKey}
+            events={this.getEvents}
+            calendarProps={
+              {
+                selectable: true,
+                selectConstraint: {
+                  start: '00:01',
+                  end: '23:59',
+                },
+                dateClick: this.handleDateClick,
+                select: this.handleDateSelect,
+              }
+            }
+            onEventClick={this.onEventClick}
+          >
+            {this.renderEventInfo()}
+            <NewEventDialog
+              open={dialogOpen}
+              day={day}
+              onClose={this.onDialogClose}
+            />
+            <NewEventFab />
+          </ EventsCalendar>
+        </Grid>
+      </Grid>
     );
+  }
+
+  private rentableClicked = (id: string) => {
+    const { rentables } = this.state;
+    const newRentables = rentables.map((rentable) => {
+      if (rentable.id !== id) {
+        return rentable;
+      } else {
+        return Object.assign({}, rentable, { isActive: !rentable.isActive });
+      }
+    });
+    this.setState({ rentables: newRentables });
   }
 
   private renderEventInfo() {
@@ -113,9 +168,16 @@ class AdminCalendar extends React.Component<WithServices, EventsState> {
     });
   }
 
-  private getEvents = (start: DateTime, end: DateTime) => {
+  private getEvents = async (start: DateTime, end: DateTime) => {
     const { services } = this.props;
-    return services.events.getAllEvents(start, end);
+    const { rentables } = this.state;
+    const events = await services.events.getAllEvents(start, end);
+    return events.filter((ev) => {
+      if (!ev.rentable) {
+        return true;
+      }
+      return rentables.filter((r) => r.isActive).find((r) => r.id === ev.rentable!.id);
+    })
   }
 }
 
